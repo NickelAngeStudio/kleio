@@ -195,7 +195,7 @@ fn kasset_broker_has_source(){
 #[test]
 fn kasset_broker_remove_source() {
 
-    kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_add_10_source/", (kaf0, kaf1, kaf2),
+    kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_remove_source/", (kaf0, kaf1, kaf2),
         {
             assert!(kab.get_sources().len() == 3, "Broker should contains 3 sources!");
             print_broker_sources_metadatas(&kab);
@@ -438,7 +438,7 @@ fn kasset_broker_get_asset_10_source() {
 #[test]
 fn kasset_broker_get_asset_inexistant() {
 
-    kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_get_asset_10_source/", (kaf0, kaf1, kaf2, kaf3, kaf4, kaf5, kaf6, kaf7, kaf8, kaf9),
+    kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_get_asset_inexistant/", (kaf0, kaf1, kaf2, kaf3, kaf4, kaf5, kaf6, kaf7, kaf8, kaf9),
     {
 
         match kab.get_asset(PathBuf::from("Shouldnotexists.txt")){

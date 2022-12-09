@@ -1,34 +1,18 @@
-/*
- * @file kleio/journal/mod.rs
- *
- * @module olympus::kleio::journal
- *
- * @brief Contains KJournal struct, KJournalEntry enum, KJournalListener trait
- * 
- * @details
- * Contains KJournal struct, KJournalEntry enum, KJournalListener trait
- * 
- * @author Mathieu Grenier
- * @copyright NickelAnge.Studio
- *
- * @date 2022-10-03
- *
- * @version
- * 1.0 : 2022-10-03 | Mathieu Grenier | Code creation
- *
- * @ref
- * 
- * @todo
- */
 
-pub struct KJournal {
 
-}
 
-pub enum KJournalEntry {
+/// # Re-export for Public API
+#[doc(inline)]
+pub use entry::KJournalEntrySeverity as KJournalEntrySeverity;
 
-}
+// Kleio asset source
+#[doc(hidden)]
+pub mod journal;
 
-pub trait KJournalListener {
-    
-}
+// Kleio asset source implementation for file system
+#[doc(hidden)]
+pub mod entry;
+
+// Kleio asset broker
+#[doc(hidden)]
+pub mod listener;

@@ -1,14 +1,37 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use event::KEventLog;
+use journal::KJournal;
+use window::KWindowSupplier;
+
+
+ /// ##### Kleio struct used for I/O operations.
+/// 
+/// TODO : Description
+/// 
+/// TODO : Example
+/// # Examples
+///
+/// ``` 
+/// 
+/// ```
+pub struct Kleio {
+    // Main Journal
+    journal: KJournal,
+
+    // Events log
+    event_log : KEventLog,
+
+    // Window supplier
+    window_supplier : Box<dyn KWindowSupplier>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// Kleio journal interface
+pub mod journal;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+// Kleio Asset manager
+pub mod asset;
+
+// Kleio event interface
+pub mod event;
+
+// Kleio window interface
+pub mod window;

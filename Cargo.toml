@@ -1,7 +1,13 @@
 [package]
 name = "olympus-kleio"
-version = "0.1.0"
+version = "0.0.0"
+authors = ["Baphomat <baphomat@nickelange.studio>"]
+description = "Goddess of history and events. She take in charge I/O and events."
+keywords = ["3d", "engine", "simple", "gamedev", "graphics"]
+categories = ["game-engines"]
+repository = "https://github.com/NickelAngeStudio/kleio"
 edition = "2021"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

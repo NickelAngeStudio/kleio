@@ -5,6 +5,8 @@
 #[doc(inline)]
 pub use entry::KJournalEntrySeverity as KJournalEntrySeverity;
 pub use entry::KJournalEntry as KJournalEntry;
+pub use listener::KJournalListener as KJournalListener;
+pub use journal::KJournal as KJournal;
 
 // Kleio asset source
 #[doc(hidden)]

@@ -4,6 +4,7 @@
 /// # Re-export for Public API
 #[doc(inline)]
 pub use entry::KJournalEntrySeverity as KJournalEntrySeverity;
+pub use entry::KJournalEntry as KJournalEntry;
 
 // Kleio asset source
 #[doc(hidden)]

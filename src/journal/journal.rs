@@ -4,7 +4,7 @@ use super::{KJournalEntry, KJournalListener, listener::KJournalListenerList, KJo
 /// 
 /// 
 /// 
-/// TODO: More doc and examples
+/// TODO: More doc and examples. Min and Max size
 pub struct KJournal<'a> {
 
     /// Name of the journal
@@ -67,6 +67,14 @@ impl<'a> KJournal<'a> {
 
 }
 
+
+/// Minimum possible buffer size for journal buffer.
+pub const KJOURNAL_BUFFER_MIN: usize = 10;
+
+/// Maximum possible buffer size for journal buffer.
+pub const KJOURNAL_BUFFER_MAX:usize = 65535;
+
+
 /// ##### Journal circular buffer containing entries.
 pub struct KJournalBuffer {
     /// Vector of entries for journal, used as a circular buffer.
@@ -93,18 +101,25 @@ impl KJournalBuffer {
     /// # Return
     /// New journal circular buffer created.
     pub fn new(size : usize) -> KJournalBuffer {
+
+        // Make sure size is between MIN and MAX
+        assert!(size >= KJOURNAL_BUFFER_MIN && size <= KJOURNAL_BUFFER_MAX, "Journal size {} should be between {} and {}!", size, KJOURNAL_BUFFER_MIN, KJOURNAL_BUFFER_MAX);
+
+        // Size is padded for head == tail conundrum 
+        let padded_size = size + 1;
+
         // Create entries vector and reserve size.
         let mut entries : Vec<KJournalEntry> = Vec::new();
-        entries.reserve(size);
+        entries.reserve(padded_size);
 
         // Create all entries.
-        for _ in 0..size {
+        for _ in 0..padded_size {
             entries.push( KJournalEntry::new(KJournalEntrySeverity::OTHER, "".to_string()));
         }
 
         // Return KJournalBuffer. size is padded for head == tail conundrum
         KJournalBuffer {
-            entries, size : size + 1, head:0, tail:0
+            entries, size : padded_size, head:0, tail:0
         }
     }
 
@@ -184,7 +199,7 @@ impl KJournalBuffer {
     /// Decrement head. (Usually when reading an entry). If head == 0, head will go to the end of buffer.
     fn dec_head(&mut self) {
 
-        if self.head > 1 {
+        if self.head >= 1 {
             self.head -= 1;
         } else {
             self.head = self.size -1;

@@ -1,8 +1,3 @@
-use event::KEventLog;
-use window::KWindowSupplier;
-
-
-
 /// Kleio journal interface
 pub mod journal;
 

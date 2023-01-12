@@ -71,10 +71,10 @@ macro_rules! kasset_broker_test_asset {
     // Initial call
     ($kab_var:ident, $folder_var:ident, $kaf_counter:expr, ($kaf_var:ident $(,$extra:ident)*)) => {
 
-        let mut cpt = 0;
+        let cpt = 0;
         kasset_broker_test_asset!($kab_var, $folder_var, $kaf_counter + cpt, $kaf_var);
         $(
-            cpt = cpt + 1;
+            let cpt = cpt + 1;
             kasset_broker_test_asset!($kab_var, $folder_var, $kaf_counter + cpt, $extra);
         )*
     };

@@ -1,21 +1,29 @@
-
-
-
 /// # Re-export for Public API
 #[doc(inline)]
-pub use entry::KJournalEntrySeverity as KJournalEntrySeverity;
+pub use severity::KJournalEntrySeverity as KJournalEntrySeverity;
+pub use severity::get_severity_symbol as get_severity_symbol;
 pub use entry::KJournalEntry as KJournalEntry;
 pub use listener::KJournalListener as KJournalListener;
+pub use listener_print::KJournalListenerPrint as KJournalListenerPrint;
 pub use journal::KJournal as KJournal;
 
-// Kleio asset source
+// Kleio journal
 #[doc(hidden)]
 pub mod journal;
 
-// Kleio asset source implementation for file system
+// Kleio journal severity
+#[doc(hidden)]
+pub mod severity;
+
+// Kleio journal entry
 #[doc(hidden)]
 pub mod entry;
 
-// Kleio asset broker
+// Kleio journal listener
 #[doc(hidden)]
 pub mod listener;
+
+// Kleio print implementation of journal listener
+#[doc(hidden)]
+pub mod listener_print;
+

@@ -6,7 +6,7 @@ use super::KJournalEntry;
 /// to according to set_severity().
 pub trait KJournalListener {
     /// Notification of new entry with an unmutable reference to it.
-    fn notify(&self, new_entry : &KJournalEntry);
+    fn notify(&mut self, new_entry : &KJournalEntry);
 
     /// Set the severity the listener will listen to.
     fn set_severity(&mut self, severity:u8);

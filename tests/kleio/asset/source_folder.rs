@@ -13,10 +13,11 @@ static TEST_FOLDER: &str = "../target/tests/kleio/asset/";
 /// Trying to create [KAssetSourceFolder] using a folder that doesn't exists.
 /// 
 /// # Verification(s)
-/// * KAssetSourceFolder::new() must panic when folder not found.
+/// V1 | KAssetSourceFolder::new() must panic when folder not found.
 #[test]
 #[should_panic]
 fn kasset_source_folder_create_not_found() {
+    // V1 | KAssetSourceFolder::new() must panic when folder not found.
     KAssetSourceFolder::new(PathBuf::from("/kasf_not_found"));
 }
 
@@ -30,7 +31,7 @@ fn kasset_source_folder_create_not_found() {
 /// This directory can be deleted once test are finished.
 /// 
 /// # Verification(s)
-/// * KAssetSourceFolder::new() must panic since path isn't a folder.
+/// V1 | KAssetSourceFolder::new() must panic since path isn't a folder.
 #[test]
 #[should_panic]
 fn kasset_source_folder_create_not_folder() {
@@ -43,7 +44,7 @@ fn kasset_source_folder_create_not_folder() {
     // Create file with content
     create_file_with_content(&(folder_name.to_owned() + "file.txt"), "Hello, world!");
 
-    // Try to create KAssetSourceFolder from file.
+    // V1 | KAssetSourceFolder::new() must panic since path isn't a folder.
     KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned() + "file.txt"));
 }
 
@@ -54,8 +55,8 @@ fn kasset_source_folder_create_not_folder() {
 /// Create [KAssetSourceFolder] and test KAssetSource::has_asset().
 /// 
 /// # Verification(s)
-/// * KAssetSourceFolder::new() created from valid folder without error.
-/// * KAssetSourceFolder has created file.
+/// V1 | KAssetSourceFolder::new() created from valid folder without error.
+/// V2 | KAssetSourceFolder has created file.
 #[test]
 fn kasset_source_folder_has_file() {
     // Test folder name
@@ -75,10 +76,10 @@ fn kasset_source_folder_has_file() {
         }
     }
     
-    // Create KAssetSourceFolder
+    // V1 | KAssetSourceFolder::new() created from valid folder without error.
     let kasf = KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned()));
 
-    // Verify that source has ALL files except those that aren't created.
+    // V2 | KAssetSourceFolder has created file.
     for i in 0..15 {
         for j in 0..15 {
             let file_name = "subfolder".to_owned() + i.to_string().as_str() + "/file" + j.to_string().as_str() + ".txt";
@@ -106,9 +107,9 @@ fn kasset_source_folder_has_file() {
 /// Create [KAssetSourceFolder] and test read from asset given by KAssetSource::get_asset().
 /// 
 /// # Verification(s)
-/// * KAssetSourceFolder::get_asset() return a valid readable asset.
-/// * Asset content matches correct content.
-/// * KAssetSourceFolder::get_asset() must not return invalid asset.
+/// V1 | KAssetSourceFolder::get_asset() return a valid readable asset.
+/// V2 | Asset content matches correct content.
+/// V3 | KAssetSourceFolder::get_asset() must not return invalid asset.
 #[test]
 fn kasset_source_folder_read_file() {
     // Test folder name
@@ -148,7 +149,7 @@ fn kasset_source_folder_read_file() {
             if i >= 1 && i <= 9 && j >=1 && j <= 9 {
                 match result  {
                     Ok(mut file) => {
-                        // Read from file and compare
+                        // V1 | KAssetSourceFolder::get_asset() return a valid readable asset.
                         let read = file.read(&mut buffer);
                         let content = &("Hello".to_owned() + i.to_string().as_str() + ", world" + j.to_string().as_str() + "!");
 
@@ -156,6 +157,7 @@ fn kasset_source_folder_read_file() {
 
                         match read {
                             Ok(size) => {
+                                // V2 | Asset content matches correct content.
                                 match compare_buffer(&buffer[0..size], &content.as_bytes()[0..size]){
                                     Ordering::Less => assert!(false, "Content is different that expected!"),
                                     Ordering::Equal => {},
@@ -170,7 +172,7 @@ fn kasset_source_folder_read_file() {
                     Err(_) => assert!(false, "KAssetSourceFolder should have file {}", &file_name),
                 }
             } else {
-                // For those out of range, file shouldn't exists.
+                // V3 | KAssetSourceFolder::get_asset() must not return invalid asset.
                 match result {
                     // Assert error because file shouldn't exists
                     Ok(_) => assert!(false, "KAssetSourceFolder shouldn't have file {}", &file_name),

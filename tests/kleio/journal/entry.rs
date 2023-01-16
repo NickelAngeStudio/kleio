@@ -1,26 +1,30 @@
-/***************************
-* KJournalEntry UNIT TESTS * 
-***************************/
-
 use std::{time::{SystemTime, Duration}, thread::sleep};
 use olympus_kleio::journal::{KJournalEntry, KJournalEntrySeverity};
 
-/// KJournalEntry::new()
+/// # Test
+/// kjournal_entry_new
+/// 
+/// # Description
 /// Create a new KJournal entry
+/// 
+/// # Verification(s)
+/// V1 | KJournalEntry::new() create an entry without error.
+/// V2 | Verify severity and description values to be the same as control.
+/// V3 | Verify that entry date is valid.
 #[test]
 fn kjournal_entry_new() {
     // Initial variables for comparison.
     let severity = KJournalEntrySeverity::INFORMATION;
     let description = String::from("Entry kjournal_entry_new");
 
-    // Create new entry.
+    // V1 | KJournalEntry::new() create an entry without error.
     let j = KJournalEntry::new(severity, description.clone());
 
-    // Verify each parameter value.
+    // V2 | Verify severity and description values to be the same as control.
     assert!(j.get_severity() == severity, "Error! Created entry severity is different!");
     assert!(j.get_description().eq(&description), "Error! Created entry description is different!");
 
-    // Make sure that system date and time taken is valid.
+    // V3 | Verify that entry date is valid.
     match j.get_date_time().duration_since(SystemTime::UNIX_EPOCH) {
         Ok(n) => 
         assert!(n.as_secs() > 0, "Error! Date and time not recorded!"),
@@ -29,7 +33,16 @@ fn kjournal_entry_new() {
 
 }
 
-/// KJournalEntry::update()
+/// # Test
+/// kjournal_entry_update
+/// 
+/// # Description
+/// Update a KJournalEntry values.
+/// 
+/// # Verification(s)
+/// V1 | KJournalEntry::update() update values without error.
+/// V2 | Verify severity and description values to be the same as control.
+/// V3 | Verify that entry date is valid.
 #[test]
 fn kjournal_entry_update() {
     // Initial variables for comparison.
@@ -48,13 +61,15 @@ fn kjournal_entry_update() {
     // Update value and entry
     let severity = KJournalEntrySeverity::ERROR;
     let description = String::from("Entry updated");
+
+    // V1 | KJournalEntry::update() update values without error.
     j.update(severity, description.clone());
 
-    // Verify each parameter value.
+    // V2 | Verify severity and description values to be the same as control.
     assert!(j.get_severity() == severity, "Error! Updated entry severity is different!");
     assert!(j.get_description().eq(&description), "Error! Updated entry description is different!");
 
-    // Make sure that system date and time taken is valid.
+    // V3 | Verify that entry date is valid.
     match j.get_date_time().duration_since(dt) {
         Ok(n) => 
         assert!(n.as_millis() > 0, "Error! Date and time difference should be higher than 0!"),

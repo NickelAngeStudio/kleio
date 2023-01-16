@@ -85,18 +85,27 @@ macro_rules! kasset_broker_test_asset {
 /********
 * TESTS *
 ********/
-/// KAssetBroker::new()
+/// # Test
+/// kasset_broker_create
 /// 
-/// Create a new KAssetBroker.
+/// # Description
+/// Create a new instance of KAssetBroker
+/// 
+/// # Verification(s)
+/// * KAssetBroker::new() create an instance without error.
 #[test]
 fn kasset_broker_create() {
     KAssetBroker::new();
 }
 
-
-/// KAssetBroker::add_source()
+/// # Test
+/// kasset_broker_add_source
 /// 
+/// # Description
 /// Create a new KAssetBroker and add a source to it.
+/// 
+/// # Verification(s)
+/// * KAssetBroker::add_source() as a source without error.
 #[test]
 fn kasset_broker_add_source() {
     kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_add_1_source/",
@@ -113,11 +122,14 @@ fn kasset_broker_add_source() {
     );
 }
 
-/// KAssetBroker::add_source()
+/// # Test
+/// kasset_broker_add_source_again
 /// 
-/// Create a new KAssetBroker and try adding same source to it.
+/// # Description
+/// Create a new KAssetBroker and try adding same source twice.
 /// 
-/// Adding the same source should trigger an error.
+/// # Verification(s)
+/// * KAssetBroker::add_source() is expected to fail after adding the same source twice.
 #[test]
 fn kasset_broker_add_source_again() {
     kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_add_same_source/",
@@ -137,15 +149,19 @@ fn kasset_broker_add_source_again() {
     );
 }
 
-
-/// KAssetBroker::add_source()
+/// # Test
+/// kasset_broker_add_source_10
 /// 
-/// Create a new KAssetBroker, add 10 source to it and try adding 10 sources again.
+/// # Description
+/// Create a new KAssetBroker and add 10 source to it.
+/// 
+/// # Verification(s)
+/// * KAssetBroker can support multiple different sources (10 tested).
 #[test]
 fn kasset_broker_add_source_10() {
     kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_add_10_source/", (kaf0, kaf1, kaf2, kaf3, kaf4, kaf5, kaf6, kaf7, kaf8, kaf9),
         {
-            // ReAdd to test source error
+            // Add the 10 sources to broker.
             match_source_to_broker(kab.add_source(&kaf0), true);
             match_source_to_broker(kab.add_source(&kaf1), true);
             match_source_to_broker(kab.add_source(&kaf2), true);
@@ -160,10 +176,15 @@ fn kasset_broker_add_source_10() {
     );
 }
 
-
-/// KAssetBroker::has_source()
+/// # Test
+/// kasset_broker_has_source
 /// 
-/// Verify if broker has source.
+/// # Description
+/// Verify that a broker has a source (or not)
+/// 
+/// # Verification(s)
+/// * Add 2 sources out of 3
+/// * KAssetBroker::has_source() has 2 sources out of 3.
 #[test]
 fn kasset_broker_has_source(){
 
@@ -188,10 +209,16 @@ fn kasset_broker_has_source(){
 }
 
 
-
-/// KAssetBroker::remove_source()
+/// # Test
+/// kasset_broker_remove_source
 /// 
-/// Remove a source from the Broker
+/// # Description
+/// Remove a source from broker
+/// 
+/// # Verification(s)
+/// * KAssetBroker::remove_source() remove a source without error.
+/// * Broker sources length should be 3 after adding 3 sources.
+/// * Each source remove should lower length by 1.
 #[test]
 fn kasset_broker_remove_source() {
 
@@ -227,12 +254,14 @@ fn kasset_broker_remove_source() {
     );
 }
 
-
-/// KAssetBroker::remove_source()
+/// # Test
+/// kasset_broker_remove_source_inexistant
 /// 
-/// Remove an inexistant source from the Broker.
+/// # Description
+/// Verify that broker return an error when trying to remove an inexistant source.
 /// 
-/// Broker should return an error upon remove_source.
+/// # Verification(s)
+/// * KAssetBroker::remove_source() must return Err() since source not in broker.
 #[test]
 fn kasset_broker_remove_source_inexistant() {
 
@@ -253,10 +282,16 @@ fn kasset_broker_remove_source_inexistant() {
     );     
 }
 
-
-/// KAssetBroker::set_source_priority()
+/// # Test
+/// kasset_broker_set_source_priority
 /// 
-/// Set a source priority.
+/// # Description
+/// Rearrange sources priotiries.
+/// 
+/// # Verification(s)
+/// * KAssetBroker::set_source_priority() modify priority without error.
+/// * Verify priorities orders with expected order.
+/// * Repeated multiple time and verified to ensure stability.
 #[test]
 fn kasset_broker_set_source_priority() {
 
@@ -269,7 +304,7 @@ fn kasset_broker_set_source_priority() {
             }
 
             // Compare priorities order
-            assert!(compare_priorities_order(&kab, vec![0,1,3,4,5,6,7,8,2,9]), "Broker priorities order error!");
+            assert!(verify_priorities_order(&kab, vec![0,1,3,4,5,6,7,8,2,9]), "Broker priorities order error!");
 
             // Switch multiple priority
             match kab.set_source_priority(&kaf0, 9){
@@ -302,14 +337,19 @@ fn kasset_broker_set_source_priority() {
             }
 
             // Compare priorities order
-            assert!(compare_priorities_order(&kab, vec![1,2,9,0,3,4,5,6,7,8]), "Broker priorities order error!");
+            assert!(verify_priorities_order(&kab, vec![1,2,9,0,3,4,5,6,7,8]), "Broker priorities order error!");
         }
     );
 }
 
-/// KAssetBroker::set_source_priority()
+/// # Test
+/// kasset_broker_set_source_priority_inexistant
 /// 
-/// Set an inexistant source priority. Should generate an error.
+/// # Description
+/// Verify that modifying an inexistant source priority result in an error.
+/// 
+/// # Verification(s)
+/// * KAssetBroker::set_source_priority() must return Err() for inexistant source.
 #[test]
 fn kasset_broker_set_source_priority_inexistant() {
 
@@ -334,9 +374,14 @@ fn kasset_broker_set_source_priority_inexistant() {
     );  
 }
 
-/// KAssetBroker::set_source_priority()
+/// # Test
+/// kasset_broker_set_source_priority_oob
 /// 
-/// Set a source priority > broker length. Should generate an error.
+/// # Description
+/// Verify that setting a priority Out of bounds (priority > sources length) result in error. 
+/// 
+/// # Verification(s)
+/// * KAssetBroker::set_source_priority() must return Err() for out of bounds priority.
 #[test]
 fn kasset_broker_set_source_priority_oob() {
     kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_set_source_priority_oob/",
@@ -361,10 +406,14 @@ fn kasset_broker_set_source_priority_oob() {
     );  
 }
 
-
-/// KAssetBroker::get_asset()
+/// # Test
+/// kasset_broker_get_asset_no_source
 /// 
-/// Get an asset from broker with 0 source. Should return an error.
+/// # Description
+/// Verify that getting an asset from an empty broker result in error.
+/// 
+/// # Verification(s)
+/// * KAssetBroker::get_asset() must return an error since it has no sources.
 #[test]
 fn kasset_broker_get_asset_no_source() {
     
@@ -382,26 +431,34 @@ fn kasset_broker_get_asset_no_source() {
 
 }
 
-/// KAssetBroker::get_asset()
+/// # Test
+/// kasset_broker_get_asset_1_source
 /// 
-/// Get an asset from broker with 1 source
+/// # Description
+/// Get asset from broker with 1 source.
+/// 
+/// # Verification(s)
+/// * KAssetBroker::get_asset() must return a readable asset.
+/// * Asset content must match expected content.
 #[test]
 fn kasset_broker_get_asset_1_source() {
     
     kasset_broker_test_prepare!(kab, folder_name, "kasset_broker_get_asset_1_source/", (kaf0),
         {
-            fetch_asset_and_compare(&kab, "file0.txt", &String::from("Hello0, world0!"));            
+            fetch_asset_and_verify(&kab, "file0.txt", &String::from("Hello0, world0!"));            
         }
     );
 
 }
 
-
-
-
-/// KAssetBroker::get_asset()
+/// # Test
+/// kasset_broker_get_asset_10_source
 /// 
-/// Get an asset from broker with 10 sources
+/// # Description
+/// Get asset from broker with 10 source according to priorities.
+/// 
+/// # Verification(s)
+/// * KAssetBroker::get_asset() gives the correct asset according to priority.
 #[test]
 fn kasset_broker_get_asset_10_source() {
     
@@ -413,7 +470,7 @@ fn kasset_broker_get_asset_10_source() {
                 let filecontent = &String::from("Hello".to_owned() + index.to_string().as_str() +", world"+ index.to_string().as_str() + "!");
 
                 // Fetch from src
-                fetch_asset_and_compare(&kab, &filename, &filecontent);
+                fetch_asset_and_verify(&kab, &filename, &filecontent);
 
                 // Remove a src (so we get next source priority)
                 match kab.remove_source(kab.get_sources()[0]){
@@ -432,9 +489,14 @@ fn kasset_broker_get_asset_10_source() {
 
 }
 
-/// KAssetBroker::get_asset()
+/// # Test
+/// kasset_broker_get_asset_inexistant
 /// 
-/// Get an inexistant asset from broker
+/// # Description
+/// Verify that trying to get an inexistant asset from multiple sources result in error.
+/// 
+/// # Verification(s)
+/// * KAssetBroker::get_asset() must return Err() since no source contains "Shouldnotexists.txt"
 #[test]
 fn kasset_broker_get_asset_inexistant() {
 
@@ -450,14 +512,17 @@ fn kasset_broker_get_asset_inexistant() {
 
 }
 
-
-/// KAssetBroker Stress test. Ignored by default.
-///
-/// * Add / remove multiple sources.
-/// * Fetch assets
-/// * Set priorities
+/// # Test
+/// kasset_broker_stress
 /// 
-/// STRESS_TEST_COUNT times
+/// # Description
+/// Stress test KAssetBroker to test stability and limit. Ignored by default. 
+/// 
+/// # Verification(s)
+/// * Add / remove multiple sources.
+/// * Fetch multiple assets.
+/// * Set multiple priorities.
+/// * Repeat STRESS_TEST_COUNT times.
 #[test]
 #[ignore]
 fn kasset_broker_stress() {
@@ -492,7 +557,7 @@ fn kasset_broker_stress() {
                 let filecontent = &String::from("Hello".to_owned() + kaf_index.to_string().as_str() +", world"+ f_index.to_string().as_str() + "!");
 
                 // Compare filecontent
-                fetch_asset_and_compare(&kab, &filename, &filecontent);
+                fetch_asset_and_verify(&kab, &filename, &filecontent);
 
                 // Remove added source from broker
                 match kab.remove_source(&kafp0){
@@ -518,7 +583,11 @@ fn kasset_broker_stress() {
  ************/
 /// Create a folder with parents folders
 /// 
-/// Will fail an assert if folders not created
+/// # Argument(s)
+/// * `folder_path` - Path to the folder as string.
+/// 
+/// # Panic
+/// Will panic if folders not created
 fn create_folder(folder_path : &str) {
 
     match fs::create_dir_all(folder_path){
@@ -530,7 +599,12 @@ fn create_folder(folder_path : &str) {
 
 /// Create a file and it's content.
 /// 
-/// Will fail an assert if file not created.
+/// # Argument(s)
+/// * `file_path` - Path to the file as string.
+/// * `file_content` - Content of the file as string.
+/// 
+/// # Panic
+/// Will panic if file not created
 fn create_file_with_content(file_path : &str, file_content : &str){
 
     let file = File::create(&file_path);
@@ -546,7 +620,16 @@ fn create_file_with_content(file_path : &str, file_content : &str){
     }
 }
 
-/// Quickly create test files 
+
+/// Create test files.
+/// 
+/// # Argument(s)
+/// * `folder_name` - Name of the folder created that contains sub-folder and files.
+/// * `sf_count` - Count of created sub-folders.
+/// * `file_count` - Count of files created per sub-folder.
+/// 
+/// # Panic
+/// Will panic if folder and/or file not created
 fn create_test_files(folder_name : &str, sf_count: usize, file_count:usize){
 
     // Create folder and sub folders for test
@@ -563,7 +646,14 @@ fn create_test_files(folder_name : &str, sf_count: usize, file_count:usize){
     }
 }
 
-/// Quickly create test folder and 10 files 
+/// Create test folder with 10 files.
+/// 
+/// # Argument(s)
+/// * `folder_name` - Name of the folder created that contains  files.
+/// * `subf_id` - Id of subfolder.
+/// 
+/// # Panic
+/// Will panic if folder and/or file not created
 fn create_test_folder_files(folder_name : &str, subf_id: usize){
 
     // Create folder and sub folders for test
@@ -576,7 +666,14 @@ fn create_test_folder_files(folder_name : &str, subf_id: usize){
     }
 }
 
-/// Match result and assert error according to expectation
+/// Match result and assert error according to expectation when adding a source.
+/// 
+/// # Argument(s)
+/// * `res` - Result of adding a source.
+/// * `expect_fail` - Is expected to fail.
+/// 
+/// # Panic
+/// Will panic if !expect_fail.
 fn match_source_to_broker<'a>(res : Result<usize, &str>, expect_fail : bool){
 
     match res{
@@ -587,7 +684,10 @@ fn match_source_to_broker<'a>(res : Result<usize, &str>, expect_fail : bool){
 
 }
 
-/// Print KAssetBroker sources metadata
+/// Print KAssetBroker sources metadata.
+/// 
+/// # Argument(s)
+/// * `kab` - KAssetBroker to print metadata.
 fn print_broker_sources_metadatas(kab : &KAssetBroker){
 
     println!("\n*** START BROKER SOURCES ***");
@@ -601,8 +701,15 @@ fn print_broker_sources_metadatas(kab : &KAssetBroker){
     println!("*** END BROKER SOURCES ***\n");
 }
 
-// Compare source priority and return true if priorities order are correct
-fn compare_priorities_order(kab : &KAssetBroker, priority : Vec<u32>) -> bool{
+/// Verify KAssetBroker sources priorities.
+/// 
+/// # Argument(s)
+/// * `kab` - KAssetBroker to verify priorities.
+/// * `priority` - Correct sequence of priorities expected.
+/// 
+/// # Return
+/// True if priorities matches. False otherwise. 
+fn verify_priorities_order(kab : &KAssetBroker, priority : Vec<u32>) -> bool{
 
     let mut is_correct : bool = true;
 
@@ -623,7 +730,13 @@ fn compare_priorities_order(kab : &KAssetBroker, priority : Vec<u32>) -> bool{
     is_correct
 }
 
-// Get asset source folder index from metadata
+/// Get asset source folder index from metadata
+/// 
+/// # Argument(s)
+/// * `src` - KAssetSource to get folder index from.
+/// 
+/// # Return
+/// KAssetSource folder index as u32.
 fn extract_source_folder_index(src:&dyn KAssetSource) -> u32 {
 
     // Extract metadata
@@ -636,8 +749,18 @@ fn extract_source_folder_index(src:&dyn KAssetSource) -> u32 {
     index.chars().next().unwrap().to_digit(10).unwrap()
 }
 
-/// Fetch asset by name and compare content
-fn fetch_asset_and_compare(kab : &KAssetBroker, asset_name:&str, asset_content:&String) {
+/// Fetch asset by name and verify content
+/// 
+/// # Argument(s)
+/// * `kab` - KAssetBroker to get asset from.
+/// * `asset_name` - Name of the asset to fetch.
+/// * `asset_content` - Content of the asset.
+/// 
+/// # Panic
+/// * Will panic if asset can't be found.
+/// * Will panic if asset can't be read.
+/// * Will panic if asset content is different.
+fn fetch_asset_and_verify(kab : &KAssetBroker, asset_name:&str, asset_content:&String) {
 
     match kab.get_asset(PathBuf::from(asset_name)){
         Ok(mut asset) => {

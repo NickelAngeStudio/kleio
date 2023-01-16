@@ -1,72 +1,38 @@
-use std::{path::{PathBuf}, fs::{self, File, remove_dir_all}, io::Write, cmp::{self, Ordering}};
+use std::{path::{PathBuf}, fs::{self, File}, io::Write, cmp::{self, Ordering}};
 use olympus_kleio::asset::{KAssetSourceFolder, KAssetSource};
 
+/// Root path of test folder
 static TEST_FOLDER: &str = "../target/tests/kleio/asset/";
 
-/// Create a folder with parents folders
+
+
+/// # Test
+/// kasset_source_folder_create_not_found
 /// 
-/// Will fail an assert if folders not created
-fn create_folder(folder_path : &str) {
-
-    match fs::create_dir_all(folder_path){
-        Ok(_) => {},
-        Err(_) => assert!(false, "Error when creating folder {}!", folder_path),
-    }
-
-}
-
-/// Create a file and it's content.
-/// 
-/// Will fail an assert if file not created.
-fn create_file_with_content(file_path : &str, file_content : &str){
-
-    let file = File::create(&file_path);
-    
-    match file {
-        Ok(mut file) => { 
-            match file.write_all(file_content.as_bytes()) {
-                Ok(_) => {},
-                Err(_) => assert!(false, "Error when writing file {}!", file_path),
-            }
-        },
-        Err(_) => assert!(false, "Error when creating file {}!", file_path),
-    }
-}
-
-/// Compare 2 buffer
-/// 
-/// Source : https://codereview.stackexchange.com/questions/233872/writing-slice-compare-in-a-more-compact-way
-fn compare(a: &[u8], b: &[u8]) -> cmp::Ordering {
-    for (ai, bi) in a.iter().zip(b.iter()) {
-        match ai.cmp(&bi) {
-            Ordering::Equal => continue,
-            ord => return ord
-        }
-    }
-
-    /* if every single element was equal, compare length */
-    a.len().cmp(&b.len())
-}
-
-#[test]
-#[should_panic]
+/// # Description
 /// Trying to create [KAssetSourceFolder] using a folder that doesn't exists.
 /// 
-/// # Panics
-/// This test function must panic because the folder doesn't exists.
+/// # Verification(s)
+/// * KAssetSourceFolder::new() must panic when folder not found.
+#[test]
+#[should_panic]
 fn kasset_source_folder_create_not_found() {
     KAssetSourceFolder::new(PathBuf::from("/kasf_not_found"));
 }
 
-#[test]
-#[should_panic]
+/// # Test
+/// kasset_source_folder_create_not_folder
+/// 
+/// # Description
 /// Trying to create [KAssetSourceFolder] using a file instead of a folder.
 /// 
 /// The test will create a directory "tests/kleio/asset" in target and a file for testing.
 /// This directory can be deleted once test are finished.
 /// 
-/// # Panics
-/// This test function must panic because path isn't a folder.
+/// # Verification(s)
+/// * KAssetSourceFolder::new() must panic since path isn't a folder.
+#[test]
+#[should_panic]
 fn kasset_source_folder_create_not_folder() {
     // Test folder name
     let folder_name: &str = &(TEST_FOLDER.to_owned() + "kasf_create_not_folder/");
@@ -81,11 +47,16 @@ fn kasset_source_folder_create_not_folder() {
     KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned() + "file.txt"));
 }
 
-
-#[test]
+/// # Test
+/// kasset_source_folder_has_file
+/// 
+/// # Description
 /// Create [KAssetSourceFolder] and test KAssetSource::has_asset().
 /// 
-/// Will test both existents and inexistents files.
+/// # Verification(s)
+/// * KAssetSourceFolder::new() created from valid folder without error.
+/// * KAssetSourceFolder has created file.
+#[test]
 fn kasset_source_folder_has_file() {
     // Test folder name
     let folder_name: &str = &(TEST_FOLDER.to_owned() + "kasf_has_file/");
@@ -128,11 +99,17 @@ fn kasset_source_folder_has_file() {
 }
 
 
-
-#[test]
+/// # Test
+/// kasset_source_folder_read_file
+/// 
+/// # Description
 /// Create [KAssetSourceFolder] and test read from asset given by KAssetSource::get_asset().
 /// 
-/// Will test both existents and inexistents files (will make sure that std::io::error is given).
+/// # Verification(s)
+/// * KAssetSourceFolder::get_asset() return a valid readable asset.
+/// * Asset content matches correct content.
+/// * KAssetSourceFolder::get_asset() must not return invalid asset.
+#[test]
 fn kasset_source_folder_read_file() {
     // Test folder name
     let folder_name: &str = &(TEST_FOLDER.to_owned() + "kasf_read_file/");
@@ -179,7 +156,7 @@ fn kasset_source_folder_read_file() {
 
                         match read {
                             Ok(size) => {
-                                match compare(&buffer[0..size], &content.as_bytes()[0..size]){
+                                match compare_buffer(&buffer[0..size], &content.as_bytes()[0..size]){
                                     Ordering::Less => assert!(false, "Content is different that expected!"),
                                     Ordering::Equal => {},
                                     Ordering::Greater => assert!(false, "Content is different that expected!"),
@@ -208,4 +185,70 @@ fn kasset_source_folder_read_file() {
 
     // Clean test
     fs::remove_dir_all(PathBuf::from(folder_name)).expect("Test couldn't be cleaned!");
+}
+
+
+/************
+* FUNCTIONS * 
+************/
+/// Create a folder with parents folders
+/// 
+/// # Argument(s)
+/// * `folder_path` - Path of the folder to create.
+/// 
+/// # Panic
+/// Will panic if folders not created.
+fn create_folder(folder_path : &str) {
+
+    match fs::create_dir_all(folder_path){
+        Ok(_) => {},
+        Err(_) => assert!(false, "Error when creating folder {}!", folder_path),
+    }
+
+}
+
+/// Create a file and it's content.
+/// 
+/// # Argument(s)
+/// * `file_path` - Path of the file to create.
+/// * `file_content` - Content of the file to create.
+/// 
+/// # Panic
+/// Will panic if file cannot be created or written.
+fn create_file_with_content(file_path : &str, file_content : &str){
+
+    let file = File::create(&file_path);
+    
+    match file {
+        Ok(mut file) => { 
+            match file.write_all(file_content.as_bytes()) {
+                Ok(_) => {},
+                Err(_) => assert!(false, "Error when writing file {}!", file_path),
+            }
+        },
+        Err(_) => assert!(false, "Error when creating file {}!", file_path),
+    }
+}
+
+/// Create a file and it's content.
+/// 
+/// # Argument(s)
+/// * `a` - Buffer to compare.
+/// * `b` - Buffer to compare it to.
+/// 
+/// # Return
+/// Result of comparison between both buffer.
+/// 
+/// # Source
+/// https://codereview.stackexchange.com/questions/233872/writing-slice-compare-in-a-more-compact-way
+fn compare_buffer(a: &[u8], b: &[u8]) -> cmp::Ordering {
+    for (ai, bi) in a.iter().zip(b.iter()) {
+        match ai.cmp(&bi) {
+            Ordering::Equal => continue,
+            ord => return ord
+        }
+    }
+
+    /* if every single element was equal, compare length */
+    a.len().cmp(&b.len())
 }

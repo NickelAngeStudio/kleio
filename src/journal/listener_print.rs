@@ -21,7 +21,7 @@ impl KJournalListenerPrint {
 }
 
 impl KJournalListener for KJournalListenerPrint {
-    fn notify(&mut self, new_entry : &super::KJournalEntry) {
+    fn notify(&self, new_entry : &super::KJournalEntry) {
         println!("[{} {:?}] {}", get_severity_symbol(new_entry.get_severity()), new_entry.get_date_time(), new_entry.get_description())
     }
 

@@ -1,3 +1,4 @@
+use std::{rc::Rc, cell::RefCell};
 use olympus_kleio::journal::{listener::KJournalListenerList, KJournalListenerPrint, KJournalEntrySeverity, KJournalListener, KJournalEntry};
 
 /// # Test
@@ -132,7 +133,7 @@ fn kjournal_listener_list_clear() {
     list.add_listener(&l3);
 
     // V3 | KJournalListenerList::count() should be 3.
-    assert!(list.count() == 0, "KJournalListenerList::count() should be 0!");
+    assert!(list.count() == 3, "KJournalListenerList::count() should be 3!");
 
     // V4 | KJournalListenerList::clear() should remove all listeners without error.
     list.clear();
@@ -166,23 +167,23 @@ fn kjournal_listener_list_notify() {
     // V1 | Create a notified listener for each severity.
     let nl0 = NotifiedListener::new(0);
     let nl1= NotifiedListener::new(KJournalEntrySeverity::DEBUG);
-    let nl2= NotifiedListener::new(KJournalEntrySeverity::OTHER);
-    let nl3 = NotifiedListener::new(KJournalEntrySeverity::INFORMATION);
-    let nl4= NotifiedListener::new(KJournalEntrySeverity::WARNING);
-    let nl5= NotifiedListener::new(KJournalEntrySeverity::ERROR);
-    let nl6 = NotifiedListener::new(KJournalEntrySeverity::FATAL);
-    let nl7 = NotifiedListener::new(KJournalEntrySeverity::ALL_NO_DEBUG);
-    let nl8 = NotifiedListener::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
+    let nl2= NotifiedListener::new( KJournalEntrySeverity::OTHER);
+    let nl3 = NotifiedListener::new( KJournalEntrySeverity::INFORMATION);
+    let nl4= NotifiedListener::new( KJournalEntrySeverity::WARNING);
+    let nl5= NotifiedListener::new( KJournalEntrySeverity::ERROR);
+    let nl6 = NotifiedListener::new( KJournalEntrySeverity::FATAL);
+    let nl7 = NotifiedListener::new( KJournalEntrySeverity::ALL_NO_DEBUG);
+    let nl8 = NotifiedListener::new( KJournalEntrySeverity::ALL_WITH_DEBUG);
     
     // V2 | Create differents combinations of 2, 3, 4, 5 and 6 severities.
-    let nls0= NotifiedListener::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER);
-    let nls1 = NotifiedListener::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
+    let nls0= NotifiedListener::new( KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER);
+    let nls1 = NotifiedListener::new(  KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
         KJournalEntrySeverity::INFORMATION);
-    let nls2= NotifiedListener::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
+    let nls2= NotifiedListener::new( KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
         KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING);
-    let nls3= NotifiedListener::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
+    let nls3= NotifiedListener::new(  KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
         KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR);
-    let nls4 = NotifiedListener::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
+    let nls4 = NotifiedListener::new(  KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
         KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR | KJournalEntrySeverity::FATAL);
 
     // V3 | Create a KJournalListenerPrint.
@@ -225,8 +226,7 @@ fn kjournal_listener_list_notify() {
     list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
         KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR, "DOIWE".to_owned()));
     list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
-        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR | KJournalEntrySeverity::FATAL, "
-        DOIWEF".to_owned()));
+        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR | KJournalEntrySeverity::FATAL, "DOIWEF".to_owned()));
 
     // V8 | Verify notification count of each NotifiedListener.
     assert!(nl0.get_notification_count() == 0, "NotifiedListener0::get_notification_count() should be 0 instead of {}!", nl0.get_notification_count());
@@ -264,33 +264,9 @@ fn kjournal_listener_list_notify_empty() {
     list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG, "DEBUG".to_owned()));
 }
 
-/// # Test
-/// kjournal_listener_list_stress
-/// 
-/// # Description
-/// Stress test a KJournalListenerList.
-/// 
-/// # Verification(s)
-/// V1 | Add a great quantity of listener.
-/// V2 | Remove a great quantity of listener.
-/// V3 | Notify a large quantity of listeners.
-/// V4 | Clear all listeners
-/// V5 | Repeat a large number of time.
-#[test]
-fn kjournal_listener_list_stress() {
-    todo!()
-
-    // V1 | Add a great quantity of listener.
-    // V2 | Remove a great quantity of listener.
-    // V3 | Notify a large quantity of listeners.
-    // V4 | Clear all listeners
-    // V5 | Repeat a large number of time.
-}
-
 /************
 * FUNCTIONS * 
 ************/
-
 
 /*************
 * STRUCTURES * 
@@ -302,7 +278,7 @@ struct NotifiedListener {
     severity : u8,
 
     // Was listener notified.
-    notification_count:usize,
+    notification_count: Rc<RefCell<usize>>,
 }
 
 impl NotifiedListener {
@@ -314,18 +290,54 @@ impl NotifiedListener {
     /// # Return
     /// New NotifiedListener created.
     pub fn new(severity:u8) -> NotifiedListener {
-        NotifiedListener { severity, notification_count: 0 }
+        NotifiedListener { severity, notification_count : Rc::new(RefCell::new(0)) }
     }
 
     /// Get the count of notifications.
     pub fn get_notification_count(&self) -> usize {
-        self.notification_count
+        let a = self.notification_count.clone();
+        a.as_ref().take()
     }
 }
 
-impl KJournalListener for NotifiedListener {
-    fn notify(&mut self, _new_entry : &KJournalEntry){
-        self.notification_count += 1;
+impl<'a> KJournalListener for NotifiedListener{
+    fn notify(&self, _new_entry : &KJournalEntry){
+        let a = self.notification_count.clone();
+
+        let b = a.as_ref();
+
+       
+        b.replace(b.take() + 1);
+
+        
+
+       
+        //let mut c = &*b;
+        //*c +=1 ;
+
+
+
+        //let a = Rc::make_mut(&mut self.notification_count);
+        //*a += 1;
+
+        //let mut a = *self.notification_count.as_mut();
+        //a+=1;
+
+        /*
+        let mut p = self.notification_count.clone();
+        //
+        let mut a = Rc::get_mut(&mut p);
+
+        match  a {
+            Some(v) => {
+                let b = v.as_mut();
+                *b+=1;
+            },
+            None => todo!(),
+        }
+        */
+
+        //**a +=1 ;
     }
 
     fn set_severity(&mut self, severity:u8){

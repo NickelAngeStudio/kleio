@@ -1,4 +1,4 @@
-use super::{KJournalEntry, KJournalListener, listener::KJournalListenerList, KJournalEntrySeverity};
+use super::{KJournalEntry, listener::KJournalListenerList, KJournalEntrySeverity};
 
 /// ##### Journal use for logging events and information.
 /// 

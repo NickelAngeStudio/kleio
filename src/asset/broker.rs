@@ -1,11 +1,52 @@
-use std::{io::{Read, ErrorKind}, path::PathBuf, fmt::Error};
+use std::{io::{Read, ErrorKind}, path::PathBuf};
 
 use super::KAssetSource;
 
-/// Middle men between [`0..n`] [KAssetSource] to supplies assets according to source priority.
+/// Middle men between [`0..n`] [KAssetSource] to supply assets according to source priority.
 /// 
-/// // TODO: Example and doc. Explain priority system (0 > n)
+/// [KAssetSource] could be the file system, a database, a blob, etc... depending on the trait implementation.
 /// 
+/// # Priorities
+/// Sources have priorities (0 > n) and the broker will try to get an asset from higher priorities first. This is useful 
+/// when handling mods or other asset modification. The base file should be the lowest priority
+/// and mods the highest.
+/// 
+/// # Example(s)
+/// ##### Creating and adding source in [KAssetBroker]
+/// `Note that this example won't run since 'myfolder0', 'myfolder1' don't exists.`
+/// ```no_run
+/// // Import needed components.
+/// use std::path::PathBuf;
+/// use olympus_kleio::asset::{KAssetBroker, KAssetSourceFolder, KAssetSource};
+/// 
+/// // Create KAssetBroker as mutable since we add KAssetSource to it.
+/// let mut kab = KAssetBroker::new();
+/// 
+/// // Create KAssetSources.
+/// let kaf0 = KAssetSourceFolder::new(PathBuf::from("myfolder0"));
+/// let kaf1 = KAssetSourceFolder::new(PathBuf::from("myfolder1"));
+/// 
+/// // Add sources to broker. Will panic if an error occurred.
+/// if let Err(_) = kab.add_source(&kaf0) {
+///     panic!("Cannot add KAssetSource0 to broker.");
+/// }
+/// 
+/// if let Err(_) = kab.add_source(&kaf1) {
+///     panic!("Cannot add KAssetSource1 to broker.");
+/// }
+/// 
+/// // Get asset from broker. Will search if asset is in kaf0 then kaf1.
+/// if let Ok(mut asset) = kab.get_asset(PathBuf::from("myasset.txt")){
+///     // Asset implements the trait Read. Here we read the asset into a string and print it.
+///     let mut str:String = String::new();
+///     if let Ok(_) = asset.read_to_string(&mut str){
+///         println!("{:?}", str);
+///     }
+/// } else {
+///     panic!("Cannot get asset 'myasset.txt'");
+/// }   
+/// ```
+
 pub struct KAssetBroker<'a> {
 
     // Vector of sources. Position 0 is highest priority.
@@ -24,15 +65,11 @@ impl<'a> KAssetBroker<'a> {
         KAssetBroker { sources }
     }
 
-    /// Add a [KAssetSource] reference to the broker.
+    /// Add a [KAssetSource] reference to the broker. Added [KAssetSource] are always last in priority.
     /// 
-    /// Added source are always last in priority.
-    /// 
-    /// # Argument(s)
-    /// * `source` - [KAssetSource] reference to fetch assets.
-    /// 
-    /// # Return
-    /// Ok<usize> with the priority of source added, Err<&str> otherwise.
+    /// Returns `Ok<usize>` with the priority of source added, `Err<&str>` otherwise.
+    /// # Error(s)
+    /// Returns `Err("Source already exists in broker!")` if `source` is already added to the broker.
     pub fn add_source(&mut self, source : &'a dyn KAssetSource) -> Result<usize, &str>{
 
         if self.has_source(source) == false {
@@ -46,13 +83,12 @@ impl<'a> KAssetBroker<'a> {
         }
     }
 
-    /// Remove a [KAssetSource] reference to the broker.
+    /// Remove the [KAssetSource] reference from the broker. 
     /// 
-    /// # Argument(s)
-    /// * `source` - [KAssetSource] reference to fetch assets.
+    /// Returns `Ok<usize>` with the priority of [KAssetSource] removed, `Err<&str>` otherwise.
     /// 
-    /// # Return
-    /// Ok<usize> with the priority of source removed, Err<&str> otherwise.
+    /// # Error(s)
+    /// Returns `Err("Source not found in broker!")` if `source` is not found in broker sources.
     pub fn remove_source(&mut self, source : &'a dyn KAssetSource) -> Result<usize, &str>{
 
         let priority = self.get_source_priority(source);
@@ -68,16 +104,12 @@ impl<'a> KAssetBroker<'a> {
 
     /// Set a [KAssetSource] priority. Will change other sources priorities.
     /// 
-    /// # Argument(s)
-    /// * `source` - [KAssetSource] reference to fetch assets.
-    /// * `priority` - Set source priority. 0 > n.
-    /// 
-    /// # Return
-    /// Ok<usize> with the new priority of source, Err<&str> otherwise.
+    /// Returns `Ok<usize>` with the new priority of [KAssetSource], `Err<&str>` otherwise.
     /// 
     /// # Error(s)
-    /// * `priority` > broker sources length
-    /// * `source` not found in broker sources
+    /// Returns `Err("New priority is higher than broker sources length!")` if the `priority` > broker sources length.
+    /// 
+    /// Returns `Err("Source not found in broker!")` if `source` is not found in broker sources.
     pub fn set_source_priority(&mut self, source : &'a dyn KAssetSource, priority : usize)-> Result<usize, &str>{
 
         // Get current position / priority of the source
@@ -115,21 +147,14 @@ impl<'a> KAssetBroker<'a> {
 
     }
 
-    /// Get broker sources vector reference.
-    /// 
-    /// # Return
-    /// Unmutable broker sources vector reference.
+    /// Get an immutable reference to the broker [KAssetSource] vector.
     pub fn get_sources(&self) -> &Vec<&'a dyn KAssetSource> {
         &self.sources
     }
 
-    /// Fetch an asset in sources according to priority and path.
+    /// Fetch an asset in sources from path.
     /// 
-    /// # Argument(s)
-    /// * `path` - Relative path to the asset.
-    /// 
-    /// # Return
-    /// `Ok(Box(Read))` if asset found, [std::io::Error] otherwise.
+    /// Returns `Ok(Box(Read))` if asset found, [std::io::Error] otherwise.
     pub fn get_asset(&self, path: PathBuf) ->  Result<Box<dyn Read>, std::io::Error>{
 
         // Use for 0.. as priority
@@ -145,13 +170,7 @@ impl<'a> KAssetBroker<'a> {
         Err(std::io::Error::new(ErrorKind::NotFound, "Asset not found!"))
     }
 
-    /// Get the source priority.
-    /// 
-    /// # Argument(s)
-    /// * `source` - [KAssetSource] reference to fetch assets.
-    /// 
-    /// # Return
-    /// Some(usize) with the priority/position if the source, None if not found
+    /// Get `Some(usize)` with the priority/position of the given [KAssetSource] if found, None if not found.
     pub fn get_source_priority(&self, source : &'a dyn KAssetSource) -> Option<usize>{
 
         for n in 0..self.sources.len() {
@@ -163,13 +182,9 @@ impl<'a> KAssetBroker<'a> {
         None
     }
 
-    /// Verify if broker contain source
+    /// Verify if broker contains given [KAssetSource].
     /// 
-    /// # Argument(s)
-    /// * `source` - [KAssetSource] reference to fetch assets.
-    /// 
-    /// # Return
-    /// True if broker contain source, false otherwise
+    /// Returns True if broker contain [KAssetSource], false otherwise
     pub fn has_source(&self, source : &'a dyn KAssetSource) -> bool{
         match  self.get_source_priority(source) {
             Some(_) => true,

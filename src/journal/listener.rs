@@ -1,10 +1,8 @@
-use std::ops::Index;
-
 use super::KJournalEntry;
 
-/// Implementing this trait permit to listen to journal
+/// Implementing this trait is needed to listen to new [KJournalEntry].
 /// 
-/// Listeners are notified of new journal entry according to severity they listen
+/// Listeners are notified of new journal entry according to [severity][super::KJournalEntrySeverity] they listen
 /// to according to set_severity().
 pub trait KJournalListener {
     /// Notification of new entry with an unmutable reference to it.
@@ -25,6 +23,15 @@ pub struct KJournalListenerList<'a> {
 
 }
 
+/// Enumeration of possible error of [KJournalListenerList].
+pub enum KJournalListenerListError {
+    /// Happens when adding a listener that is already in the list.
+    ListenerAlreadyExists,
+
+    /// Happens when a listener is not found in the list.
+    ListenerNotFound,
+}
+
 impl<'a> KJournalListenerList<'a> {
 
     /// Create a new instance of KJournalListenerList
@@ -37,9 +44,6 @@ impl<'a> KJournalListenerList<'a> {
     }
 
     /// Notify listeners with a new entry. Will notify listeners according to their severity settings.
-    /// 
-    /// # Argument(s)
-    /// * `entry` - KJournalEntry sent with notification.
     pub fn notify(&self, entry : &super::KJournalEntry) {
         for listener in &self.listeners {
             // Verify that listener is listening to this severity.
@@ -49,38 +53,35 @@ impl<'a> KJournalListenerList<'a> {
         }
     }
 
-    /// Add listener to the list.
+    /// Add [KJournalListener] to the list.
     /// 
-    /// # Argument(s)
-    /// * `listener` - KJournalListener implementation to add to the list.
+    /// Returns [OK(usize)][Ok] with index of new listener added.
     /// 
-    /// # Panic
-    /// Will panic if trying to add the same listener twice.
-    pub fn add_listener(&mut self, listener : &'a (dyn KJournalListener + 'a)) {
+    /// # Error(s)
+    /// Returns `Err(`[KJournalListenerListError::ListenerAlreadyExists]`)` if listener is already in list.
+    pub fn add_listener(&mut self, listener : &'a (dyn KJournalListener + 'a)) -> Result<usize, KJournalListenerListError> {
+        
         match self.get_listener_index(listener) {
-            Ok(_) => panic!("Cannot add the same KJournalListener twice!"),
-            Err(_) => self.listeners.push(listener),
+            Ok(_) => Err(KJournalListenerListError::ListenerAlreadyExists),
+            Err(_) => { self.listeners.push(listener); Ok(self.listeners.len() - 1) },
+        }
+
+    }
+
+    /// Remove a [KJournalListener] from the list.
+    /// 
+    /// Returns [OK(usize)][Ok] with index of listener removed.
+    /// 
+    /// # Error(s)
+    /// Returns `Err(`[KJournalListenerListError::ListenerNotFound]`)` if listener not found.
+    pub fn remove_listener(&mut self, listener : &dyn KJournalListener) -> Result<usize, KJournalListenerListError> {
+        match self.get_listener_index(listener) {
+            Ok(index) => { self.listeners.remove(index); Ok(index) },
+            Err(_) => Err(KJournalListenerListError::ListenerNotFound),
         }
     }
 
-    /// Remove a listener from the list.
-    /// 
-    /// # Argument(s)
-    /// * `listener` - KJournalListener implementation to remove from the list.
-    /// 
-    /// # Panic
-    /// Will panic if trying to remove a listener not in the list.
-    pub fn remove_listener(&mut self, listener : &dyn KJournalListener) {
-        match self.get_listener_index(listener) {
-            Ok(index) => { self.listeners.remove(index); },
-            Err(_) => panic!("KJournalListener to remove not found!!"),
-        }
-    }
-
-    /// Get the count of listeners.
-    /// 
-    /// # Return
-    /// Count of listeners in list.
+    /// Returns the count of listeners.
     pub fn count(&self)->usize {
         self.listeners.len()
     }
@@ -90,14 +91,11 @@ impl<'a> KJournalListenerList<'a> {
         self.listeners.clear();
     }
 
-    /// Get the index of a listener from the list.
+    /// Returns the index of a listener from the list.
     /// 
-    /// # Argument(s)
-    /// * `listener` - Listener to find in list.
-    /// 
-    /// # Return
-    /// Ok(usize) containing index of the list. Err() otherwise.
-    fn get_listener_index(&self, listener : &dyn KJournalListener)-> Result<usize, &str> {
+    /// # Error(s)
+    /// Returns `Err(`[KJournalListenerListError::ListenerNotFound]`)` if listener not found.
+    fn get_listener_index(&self, listener : &dyn KJournalListener)-> Result<usize, KJournalListenerListError> {
         let mut found = false;
         let mut index: usize = 0;
 
@@ -113,7 +111,7 @@ impl<'a> KJournalListenerList<'a> {
             Ok(index)
         }
         else {
-            Err("Listener not found!")
+            Err(KJournalListenerListError::ListenerNotFound)
         }
     }
 }

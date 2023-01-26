@@ -1,11 +1,14 @@
 /// # Re-export for Public API
 #[doc(inline)]
 pub use severity::KJournalEntrySeverity as KJournalEntrySeverity;
-pub use severity::get_severity_symbol as get_severity_symbol;
+pub use severity::get_journal_severity_symbol as get_journal_severity_symbol;
 pub use entry::KJournalEntry as KJournalEntry;
 pub use listener::KJournalListener as KJournalListener;
 pub use listener_print::KJournalListenerPrint as KJournalListenerPrint;
 pub use journal::KJournal as KJournal;
+pub use journal::KJOURNAL_BUFFER_MAX as KJOURNAL_BUFFER_MAX;
+pub use journal::KJOURNAL_BUFFER_MIN as KJOURNAL_BUFFER_MIN;
+
 
 // Kleio journal
 #[doc(hidden)]

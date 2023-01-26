@@ -1,39 +1,36 @@
 use std::{path::{PathBuf}, fs::{self, File}, io::Write, cmp::{self, Ordering}};
-use olympus_kleio::asset::{KAssetSourceFolder, KAssetSource};
+use olympus_kleio::asset::{KAssetSourceFolder, KAssetSource, KAssetSourceFolderError};
 
 /// Root path of test folder
 static TEST_FOLDER: &str = "../target/tests/kleio/asset/";
 
 
 
-/// # Test
-/// kasset_source_folder_create_not_found
-/// 
+#[test]
 /// # Description
 /// Trying to create [KAssetSourceFolder] using a folder that doesn't exists.
 /// 
 /// # Verification(s)
-/// V1 | KAssetSourceFolder::new() must panic when folder not found.
-#[test]
-#[should_panic]
+/// V1 | KAssetSourceFolder::new() must return Err(KAssetSourceFolderError::FolderNotFound) since path doesn't exists.
 fn kasset_source_folder_create_not_found() {
-    // V1 | KAssetSourceFolder::new() must panic when folder not found.
-    KAssetSourceFolder::new(PathBuf::from("/kasf_not_found"));
+    // V1 | AssetSourceFolder::new() must return Err(KAssetSourceFolderError::FolderNotFound) since path doesn't exists.
+    match  KAssetSourceFolder::new(PathBuf::from("/kasf_not_found")) {
+        Ok(_) => assert!(false, "KAssetSourceFolder::new() must return Err(KAssetSourceFolderError::FolderNotFound) since path doesn't exists."),
+        Err(err) => match err  {
+            KAssetSourceFolderError::FolderNotFound => {},
+            _ => assert!(false, "Wrong error given!"),
+        } ,
+    }
 }
 
-/// # Test
-/// kasset_source_folder_create_not_folder
-/// 
-/// # Description
+#[test]
 /// Trying to create [KAssetSourceFolder] using a file instead of a folder.
 /// 
 /// The test will create a directory "tests/kleio/asset" in target and a file for testing.
 /// This directory can be deleted once test are finished.
 /// 
 /// # Verification(s)
-/// V1 | KAssetSourceFolder::new() must panic since path isn't a folder.
-#[test]
-#[should_panic]
+/// V1 | KAssetSourceFolder::new() must return Err(KAssetSourceFolderError::PathIsNotFolder) since path isn't a folder.
 fn kasset_source_folder_create_not_folder() {
     // Test folder name
     let folder_name: &str = &(TEST_FOLDER.to_owned() + "kasf_create_not_folder/");
@@ -44,20 +41,22 @@ fn kasset_source_folder_create_not_folder() {
     // Create file with content
     create_file_with_content(&(folder_name.to_owned() + "file.txt"), "Hello, world!");
 
-    // V1 | KAssetSourceFolder::new() must panic since path isn't a folder.
-    KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned() + "file.txt"));
+    // V1 | KAssetSourceFolder::new() must return Err(KAssetSourceFolderError::PathIsNotFolder) since path isn't a folder.
+    match KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned() + "file.txt")) {
+        Ok(_) => assert!(false, "KAssetSourceFolder::new() must return Err(KAssetSourceFolderError::PathIsNotFolder) since path isn't a folder"),
+        Err(err) => match err  {
+            KAssetSourceFolderError::PathIsNotFolder => {},
+            _ => assert!(false, "Wrong error given!"),
+        } ,
+    }
 }
 
-/// # Test
-/// kasset_source_folder_has_file
-/// 
-/// # Description
+#[test]
 /// Create [KAssetSourceFolder] and test KAssetSource::has_asset().
 /// 
 /// # Verification(s)
 /// V1 | KAssetSourceFolder::new() created from valid folder without error.
 /// V2 | KAssetSourceFolder has created file.
-#[test]
 fn kasset_source_folder_has_file() {
     // Test folder name
     let folder_name: &str = &(TEST_FOLDER.to_owned() + "kasf_has_file/");
@@ -77,7 +76,7 @@ fn kasset_source_folder_has_file() {
     }
     
     // V1 | KAssetSourceFolder::new() created from valid folder without error.
-    let kasf = KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned()));
+    let kasf = KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned())).unwrap();
 
     // V2 | KAssetSourceFolder has created file.
     for i in 0..15 {
@@ -100,17 +99,13 @@ fn kasset_source_folder_has_file() {
 }
 
 
-/// # Test
-/// kasset_source_folder_read_file
-/// 
-/// # Description
+#[test]
 /// Create [KAssetSourceFolder] and test read from asset given by KAssetSource::get_asset().
 /// 
 /// # Verification(s)
 /// V1 | KAssetSourceFolder::get_asset() return a valid readable asset.
 /// V2 | Asset content matches correct content.
 /// V3 | KAssetSourceFolder::get_asset() must not return invalid asset.
-#[test]
 fn kasset_source_folder_read_file() {
     // Test folder name
     let folder_name: &str = &(TEST_FOLDER.to_owned() + "kasf_read_file/");
@@ -130,7 +125,7 @@ fn kasset_source_folder_read_file() {
     }
     
     // Create KAssetSourceFolder
-    let kasf = KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned()));
+    let kasf = KAssetSourceFolder::new(PathBuf::from(folder_name.to_owned())).unwrap();
 
     // Read buffer
     let mut buffer : [u8; 50] = [0; 50];
@@ -193,11 +188,8 @@ fn kasset_source_folder_read_file() {
 /************
 * FUNCTIONS * 
 ************/
-/// Create a folder with parents folders
-/// 
-/// # Argument(s)
-/// * `folder_path` - Path of the folder to create.
-/// 
+/// Create a folder with parents folders from path.
+///
 /// # Panic
 /// Will panic if folders not created.
 fn create_folder(folder_path : &str) {
@@ -209,11 +201,7 @@ fn create_folder(folder_path : &str) {
 
 }
 
-/// Create a file and it's content.
-/// 
-/// # Argument(s)
-/// * `file_path` - Path of the file to create.
-/// * `file_content` - Content of the file to create.
+/// Create a file and it's content from path and content.
 /// 
 /// # Panic
 /// Will panic if file cannot be created or written.
@@ -232,14 +220,9 @@ fn create_file_with_content(file_path : &str, file_content : &str){
     }
 }
 
-/// Create a file and it's content.
+/// Compare 2 buffers `a` and `b`.
 /// 
-/// # Argument(s)
-/// * `a` - Buffer to compare.
-/// * `b` - Buffer to compare it to.
-/// 
-/// # Return
-/// Result of comparison between both buffer.
+/// Returns result of comparison between both buffer.
 /// 
 /// # Source
 /// https://codereview.stackexchange.com/questions/233872/writing-slice-compare-in-a-more-compact-way

@@ -3,15 +3,11 @@ use olympus_kleio::journal::{journal::{KJournalBuffer, KJOURNAL_BUFFER_MIN, KJOU
 /// Used test buffer size. Is padded in function that use it to make sure it is between MIN and MAX.
 static KJOURNAL_BUFFER_TEST_SIZE:usize = 250;
 
-/// # Test
-/// kjournal_buffer_new
-/// 
-/// # Description
+#[test]
 /// Create a new instance of KJournalBuffer with size in the middle of KJOURNAL_BUFFER_MIN and KJOURNAL_BUFFER_MAX
 /// 
 /// # Verification(s)
 /// V1 | KJournalBuffer::new(KJOURNAL_BUFFER_TEST_SIZE) created without error.
-#[test]
 fn kjournal_buffer_new() {
     // Used test buffer size is KJOURNAL_BUFFER_TEST_SIZE. If min is bigger, it become min. If max is lower, it become max.
     let buffer_size:usize = std::cmp::min(std::cmp::max(KJOURNAL_BUFFER_TEST_SIZE, KJOURNAL_BUFFER_MIN), KJOURNAL_BUFFER_MAX);
@@ -20,96 +16,77 @@ fn kjournal_buffer_new() {
     let _ = KJournalBuffer::new(buffer_size);
 }
 
-/// # Test
-/// kjournal_buffer_new_min
-/// 
-/// # Description
+#[test]
 /// Create a new instance of KJournalBuffer with minimal allowed size.
 /// 
 /// # Verification(s)
 /// V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MIN) created without error.
-#[test]
 fn kjournal_buffer_new_min() {
     // V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MIN) created without error.
     let _ = KJournalBuffer::new(KJOURNAL_BUFFER_MIN);
 }
 
-/// # Test
-/// kjournal_buffer_new_max
-/// 
-/// # Description
+#[test]
 /// Create a new instance of KJournalBuffer with maximum allowed size.
 /// 
 /// # Verification(s)
 /// V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MAX) created without error.
-#[test]
 fn kjournal_buffer_new_max() {
     // V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MAX) created without error.
     let _ = KJournalBuffer::new(KJOURNAL_BUFFER_MAX);
 }
 
-/// # Test
-/// kjournal_buffer_new_below_min
-/// 
-/// # Description
-/// Create a new instance of KJournalBuffer with size below allowed minimum.
-/// 
-/// # Verification(s)
-/// V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MIN - 1) should panic.
 #[test]
-#[should_panic]
-fn kjournal_buffer_new_below_min() {
-    // V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MIN - 1) should panic.
-    let _ = KJournalBuffer::new(KJOURNAL_BUFFER_MIN - 1);
+/// Test limit of size when creating KJournalBuffer.
+///
+/// # Verification(s)
+/// V1 | New KJournalBuffer created with buffer size < KJOURNAL_BUFFER_MIN must return Err(KJournalError::BufferSizeTooSmall).
+/// V2 | New KJournalBuffer created with buffer size > KJOURNAL_BUFFER_MAX must return Err(KJournalError::BufferSizeTooBig).
+fn kjournal_buffer_new_limit() {
+    // V1 | New KJournalBuffer created with buffer size < KJOURNAL_BUFFER_MIN must return Err(KJournalError::BufferSizeTooSmall).
+    match KJournalBuffer::new(KJOURNAL_BUFFER_MIN - 1){
+        Ok(_) => panic!("size < MIN must return Err(KJournalError::BufferSizeTooSmall)!"),
+        Err(err) => match err {
+            olympus_kleio::journal::journal::KJournalError::BufferSizeTooSmall => {},
+            olympus_kleio::journal::journal::KJournalError::BufferSizeTooBig => panic!("size < MIN must return Err(KJournalError::BufferSizeTooSmall)!"),
+        },
+    }
+
+
+    // V2 | New KJournalBuffer created with buffer size > KJOURNAL_BUFFER_MAX must return Err(KJournalError::BufferSizeTooBig).
+    match KJournalBuffer::new(KJOURNAL_BUFFER_MAX + 1){
+        Ok(_) => panic!("size > MAX must return Err(KJournalError::BufferSizeTooBig)!"),
+        Err(err) => match err {
+            olympus_kleio::journal::journal::KJournalError::BufferSizeTooSmall => panic!("size > MAX must return Err(KJournalError::BufferSizeTooBig)!"),
+            olympus_kleio::journal::journal::KJournalError::BufferSizeTooBig => {},
+        },
+    }
 }
 
-/// # Test
-/// kjournal_buffer_new_above_max
-/// 
-/// # Description
-/// Create a new instance of KJournalBuffer with size above allowed maximum.
-/// 
-/// # Verification(s)
-/// V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MAX + 1) should panic.
 #[test]
-#[should_panic]
-fn kjournal_buffer_new_above_max() {
-    // V1 | KJournalBuffer::new(KJOURNAL_BUFFER_MAX + 1) should panic.
-    let _ = KJournalBuffer::new(KJOURNAL_BUFFER_MAX + 1);
-}
-
-/// # Test
-/// kjournal_buffer_size
-/// 
-/// # Description
 /// Verify the size of KJournalBuffer created.
 /// 
 /// # Verification(s)
 /// V1 | KJournalBuffer::size() should be equal to created size.
-#[test]
 fn kjournal_buffer_size() {
     // Used test buffer size is KJOURNAL_BUFFER_TEST_SIZE. If min is bigger, it become min. If max is lower, it become max.
     let buffer_size:usize = std::cmp::min(std::cmp::max(KJOURNAL_BUFFER_TEST_SIZE, KJOURNAL_BUFFER_MIN), KJOURNAL_BUFFER_MAX);
 
     // V1 | KJournalBuffer::size() should be equal to created size.
-    let kb = KJournalBuffer::new(buffer_size);
+    let kb = KJournalBuffer::new(buffer_size).unwrap();
     assert!(kb.size() == buffer_size, "KJournalBuffer::size() is incorrect!");
 }
 
-/// # Test
-/// kjournal_buffer_none
-/// 
-/// # Description
+#[test]
 /// Verify that KJournalBuffer::latest() return None when no entries.
 /// 
 /// # Verification(s)
 /// V1 | KJournalBuffer::latest() return None when empty.
-#[test]
 fn kjournal_buffer_latest_none() {
      // Used test buffer size is KJOURNAL_BUFFER_TEST_SIZE. If min is bigger, it become min. If max is lower, it become max.
      let buffer_size:usize = std::cmp::min(std::cmp::max(KJOURNAL_BUFFER_TEST_SIZE, KJOURNAL_BUFFER_MIN), KJOURNAL_BUFFER_MAX);
  
-     let mut kb = KJournalBuffer::new(buffer_size);
+     let mut kb = KJournalBuffer::new(buffer_size).unwrap();
 
      // V1 | KJournalBuffer::latest() return None when empty.
      match kb.latest() {
@@ -118,10 +95,7 @@ fn kjournal_buffer_latest_none() {
     }
 } 
 
-/// # Test
-/// kjournal_buffer_write
-/// 
-/// # Description
+#[test]
 /// Verify writing entries into buffer.
 /// 
 /// # Verification(s)
@@ -130,11 +104,10 @@ fn kjournal_buffer_latest_none() {
 /// V3 | Write multiple different entries without error.
 /// V4 | Write more entries that buffer MAX without error.
 /// V5 | Retrieve and verify entries in correct order. (latest to oldest)
-#[test]
 fn kjournal_buffer_write() {
     // Used test buffer size is KJOURNAL_BUFFER_TEST_SIZE. If min is bigger, it become min. If max is lower, it become max.
     let buffer_size:usize = std::cmp::min(std::cmp::max(KJOURNAL_BUFFER_TEST_SIZE, KJOURNAL_BUFFER_MIN), KJOURNAL_BUFFER_MAX);
-    let mut kb = KJournalBuffer::new(buffer_size);
+    let mut kb = KJournalBuffer::new(buffer_size).unwrap();
 
     // V1 | KJournalBuffer::write() write an entry into buffer without error.
     kb.write(KJournalEntrySeverity::DEBUG, "Debug entry".to_owned());
@@ -163,10 +136,7 @@ fn kjournal_buffer_write() {
 
 }
 
-/// # Test
-/// kjournal_buffer_unread
-/// 
-/// # Description
+#[test]
 /// Verify that buffer unread count is accurate.
 /// 
 /// # Verification(s)
@@ -178,12 +148,11 @@ fn kjournal_buffer_write() {
 /// V6 | KJournalBuffer::unread() size should be buffer_size - (buffer_size / 2) - 1 after reading another buffer_size / 2 entries.
 /// V7 | KJournalBuffer::clear() should clear the buffer without error.
 /// V8 | KJournalBuffer::unread() size must be 0 after clear().
-#[test]
 fn kjournal_buffer_unread() {
     // Used test buffer size is KJOURNAL_BUFFER_TEST_SIZE. If min is bigger, it become min. If max is lower, it become max.
     let buffer_size:usize = std::cmp::min(std::cmp::max(KJOURNAL_BUFFER_TEST_SIZE, KJOURNAL_BUFFER_MIN), KJOURNAL_BUFFER_MAX);
 
-    let mut kb = KJournalBuffer::new(buffer_size);
+    let mut kb = KJournalBuffer::new(buffer_size).unwrap();
 
     // V1 | KJournalBuffer::unread() initial size must be 0.
     assert!(kb.unread() == 0, "Unread ({}) count incorrect! Should be {}!", kb.unread(), 0);
@@ -239,10 +208,8 @@ fn kjournal_buffer_unread() {
 }
 
 
-/// # Test
-/// kjournal_buffer_stress
-/// 
-/// # Description
+#[test]
+#[ignore]
 /// Stress test KJournalBuffer to test stability and limit.
 /// 
 /// # Verification(s)
@@ -257,13 +224,11 @@ fn kjournal_buffer_unread() {
 /// V9 | Read each entry until None is returned.
 /// V10 | Verify that size() is now 0.
 /// V11 | Repeat until MAX is reached.
-#[test]
-#[ignore]
 fn kjournal_buffer_stress() {   
     // V1 | Multiple different buffer size ranging from MIN to MAX
     // V11 | Repeat until MAX is reached.
     for buffer_size in (KJOURNAL_BUFFER_MIN..KJOURNAL_BUFFER_MAX).step_by((KJOURNAL_BUFFER_MAX - KJOURNAL_BUFFER_MIN) / 100) {
-        let mut kb = KJournalBuffer::new(buffer_size);
+        let mut kb = KJournalBuffer::new(buffer_size).unwrap();
 
         // V2 | Verify initial size() is 0.
         assert!(kb.unread() == 0, "Unread ({}) count incorrect! Should be {}!", kb.unread(), 0);
@@ -317,12 +282,7 @@ fn kjournal_buffer_stress() {
 /************
 * FUNCTIONS * 
 ************/
-/// Verify a journal entry. Will panic if entry verification failed.
-/// 
-/// # Argument(s)
-/// * `entry` - Entry to verify.
-/// * `severity` - Severity that the entry should have.
-/// * `desc` - Description the entry should have.
+/// Verify a journal entry with a severity and description control.
 /// 
 /// # Panic
 /// Will panic if any entry parameters are wrong.

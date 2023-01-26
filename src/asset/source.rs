@@ -17,7 +17,7 @@ use std::{io::Read, path::{ PathBuf}};
 /// // Import needed components
 /// use core::panic;
 /// use std::{path::{PathBuf}, fs::{File}, io::Read};
-/// use olympus::kleio::asset::{KAssetSource};
+/// use olympus_kleio::asset::{KAssetSource};
 /// 
 /// // Create struct that will keep the base folder_path 
 /// pub struct SourceFolder {
@@ -78,31 +78,19 @@ pub trait KAssetSource {
     /// 
     /// This is a free field to let user create meta tags to identify source in a mod manager, for example.
     /// 
-    /// # Argument(s)
-    /// * `path` - Relative path to the asset.
-    /// 
-    /// # Return
-    /// Metadata in string form.
+    /// Returns [KAssetSource] metadata as [String]
     fn get_metadata(&self) -> String {
         String::from("(Metadata not implemented...)")
     }
 
     /// Verify that asset source contains asset from path.
     /// 
-    /// # Argument(s)
-    /// * `path` - Relative path to the asset.
-    /// 
-    /// # Return
-    /// `True` if source has the asset, `false` otherwise.
+    /// Returns `True` if source has the asset or `false` otherwise.
     fn has_asset(&self, path: PathBuf) -> bool;
 
-    /// Get an asset read handle from path.
+    /// Get an asset [Read] handle from [path][PathBuf].
     /// 
-    /// # Argument(s)
-    /// * `path` - Relative path to the asset.
-    /// 
-    /// # Return
-    /// `Ok(Box(Read))` if found, [std::io::Error] otherwise.
+    /// Returns [Ok][Ok]`(`[Box][Box]`(`[Read]`))` if found or [std::io::Error] otherwise.
     fn get_asset(&self, path: PathBuf) -> Result<Box<dyn Read>, std::io::Error>;
     
 }

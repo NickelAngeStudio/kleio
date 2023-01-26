@@ -1,8 +1,15 @@
-use super::{KJournalEntry, listener::KJournalListenerList, KJournalEntrySeverity};
+use super::{KJournalEntry, listener::KJournalListenerList, listener::{KJournalListener, KJournalListenerListError}, KJournalEntrySeverity};
 
 /// ##### Journal use for logging events and information.
 /// 
+/// # Example
+/// Create a new [KJournal] with minimum buffer size.
+/// ```
+/// use olympus_kleio::journal::{KJournal, KJOURNAL_BUFFER_MIN};
 /// 
+/// 
+/// 
+/// ```
 /// 
 /// TODO: More doc and examples. Min and Max size
 pub struct KJournal<'a> {
@@ -20,47 +27,126 @@ pub struct KJournal<'a> {
     entries :  KJournalBuffer,
 }
 
+/// Enumeration of possible [KJournal] errors.
+pub enum KJournalError {
+
+    /// Happens when [KJournal] buffer size is smaller then [KJOURNAL_BUFFER_MIN].
+    BufferSizeTooSmall,
+
+    /// Happens when [KJournal] buffer size is bigger then [KJOURNAL_BUFFER_MAX].
+    BufferSizeTooBig,
+
+}
+
+impl std::fmt::Debug for KJournalError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BufferSizeTooSmall => write!(f, "BufferSizeTooSmall"),
+            Self::BufferSizeTooBig => write!(f, "BufferSizeTooBig"),
+        }
+    }
+}
+
 impl<'a> KJournal<'a> {
 
-    /// Create a new instance of KJournal.
+    /// Create a new instance of KJournal from name, severity it listen to and maximum entries allowed(buffer size).
     /// 
-    /// # Argument(s)
-    /// * `name` - Name / Id to identify the journal.
-    /// * `severity` - Severities of entry to log. Will ignore entries not included.
-    /// * `max_entries` - Maximum count of entries kept before rewriting oldest entries
+    /// Returns Ok([KJournal]) with new journal created if successful.
     /// 
-    /// # Return
-    /// New journal created.
-    pub fn new(name : &str, severity : u8, max_entries : usize) -> KJournal {
-        KJournal { name: name.to_owned(), severity: severity, listeners: KJournalListenerList::new(), entries: KJournalBuffer::new(max_entries)  }
+    /// # Error(s)
+    /// Returns Err([KJournalError::BufferSizeTooSmall]) if `max_entries` < [KJOURNAL_BUFFER_MIN].
+    /// 
+    /// Returns Err([KJournalError::BufferSizeTooBig]) if `max_entries` > [KJOURNAL_BUFFER_MAX].
+    pub fn new(name : &str, severity : u8, max_entries : usize) -> Result<KJournal, KJournalError> {
+
+        match  KJournalBuffer::new(max_entries) {
+            Ok(buffer) => Ok( KJournal {
+                name: name.to_owned(), 
+                severity: severity, 
+                listeners: KJournalListenerList::new(), 
+                entries: buffer  }),
+            Err(error) => Err(error),
+        }
+
     }
 
-    /// Get the journal latest entry.
-    /// 
-    /// # Return
-    /// [Some(KJournalEntry)](https://doc.rust-lang.org/beta/core/option/enum.Option.html#variant.Some) if any, [None] otherwise.
-    pub fn get_latest_entry(&self) -> Option<&KJournalEntry> {
+    /// Write a new entry to [KJournal] with [`KJournalEntrySeverity`] and description if entry is not ignored.
+    pub fn write(&mut self, severity : u8, description : &str) {
         todo!()
     }
 
-    /// Set severity flags to log in journal. See [`KJournalEntrySeverity`].
-    pub fn set_severity(severity : u8) {
+    /// Pop the journal latest entry.
+    /// 
+    /// Returns [Some(KJournalEntry)](https://doc.rust-lang.org/beta/core/option/enum.Option.html#variant.Some) if any or [None] otherwise.
+    pub fn read(&self) -> Option<&KJournalEntry> {
+        todo!()
+    }
+
+    /// Get count of unread [KJournalEntry] as usize.
+    pub fn unread(&self) -> usize {
+        todo!()
+    }
+
+    /// Clear the [KJournal] to 0 entries.
+    pub fn clear(&mut self) {
+        todo!()
+    }
+
+    /// Add [KJournalListener] to the [KJournal].
+    /// 
+    /// Returns [OK(usize)][Ok] with index of new listener added.
+    /// 
+    /// # Error(s)
+    /// Returns `Err(`[KJournalListenerListError::ListenerAlreadyExists]`)` if listener is already in list.
+    pub fn add_listener(&mut self, listener : &'a (dyn KJournalListener + 'a)) -> Result<usize, KJournalListenerListError> {
+        
+        todo!()
+
+    }
+
+    /// Remove a [KJournalListener] from the [KJournal].
+    /// 
+    /// Returns [OK(usize)][Ok] with index of listener removed.
+    /// 
+    /// # Error(s)
+    /// Returns `Err(`[KJournalListenerListError::ListenerNotFound]`)` if listener not found.
+    pub fn remove_listener(&mut self, listener : &dyn KJournalListener) -> Result<usize, KJournalListenerListError> {
+        todo!()
+    }
+
+
+    /// Set [`KJournalEntrySeverity`] flags to log in journal. Will ignore other severity and won't push them to listeners.
+    pub fn set_severity(&mut self, severity : u8) {
         todo!()
     } 
 
-    /// Set the maximum entries kept.
+    /// Get [`KJournalEntrySeverity`] the [KJournal] listen to.
+    pub fn get_severity(&self) -> u8 {
+        todo!()
+    }
+
+    /// Set the maximum entries kept in [KJournal].
     /// 
-    /// # Argument(s)
-    /// * `max_entries` - Maximum count of entries kept before rewriting oldest entries
+    /// Returns Ok([usize]) with the new size of the buffer.
     /// 
     /// # Note(s)
-    /// PREVIOUS ENTRIES WILL BE DESTROYED!
-    pub fn set_max_entries(&mut self, max_entries : usize) {
+    /// PREVIOUS ENTRIES WILL BE LOST!
+    /// 
+    /// # Error(s)
+    /// Returns Err([KJournalError::BufferSizeTooSmall]) if `max_entries` < [KJOURNAL_BUFFER_MIN].
+    /// 
+    /// Returns Err([KJournalError::BufferSizeTooBig]) if `max_entries` > [KJOURNAL_BUFFER_MAX].
+    pub fn set_max_entries(&mut self, max_entries : usize) -> Result<usize, KJournalError> {
         todo!()
 
         // Recreate buffer
 
         // Store new maximum entries
+    }
+
+    /// Get the buffer size of [KJournal].
+    pub fn get_max_entries(&self) -> usize {
+        todo!()
     }
 
     
@@ -95,15 +181,24 @@ pub struct KJournalBuffer {
 impl KJournalBuffer {
 
     /// Create a new journal circular buffer according to size parameter.
-    /// # Argument(s)
-    /// * `size` - Size of the circular buffer
     /// 
-    /// # Return
-    /// New journal circular buffer created.
-    pub fn new(size : usize) -> KJournalBuffer {
+    /// Returns Ok([KJournalBuffer]) with new journal circular buffer created.
+    /// 
+    /// # Error(s)
+    /// Returns Err([KJournalError::BufferSizeTooSmall]) if `size` < [KJOURNAL_BUFFER_MIN].
+    /// 
+    /// Returns Err([KJournalError::BufferSizeTooBig]) if `size` > [KJOURNAL_BUFFER_MAX].
+    pub fn new(size : usize) -> Result<KJournalBuffer, KJournalError> {
 
-        // Make sure size is between MIN and MAX
-        assert!(size >= KJOURNAL_BUFFER_MIN && size <= KJOURNAL_BUFFER_MAX, "Journal size {} should be between {} and {}!", size, KJOURNAL_BUFFER_MIN, KJOURNAL_BUFFER_MAX);
+        // Make sure size is >=  KJOURNAL_BUFFER_MIN
+        if size < KJOURNAL_BUFFER_MIN {
+            return Err(KJournalError::BufferSizeTooSmall)
+        }
+
+        // Make sure size is <= KJOURNAL_BUFFER_MAX
+        if size > KJOURNAL_BUFFER_MAX {
+            return Err(KJournalError::BufferSizeTooBig)
+        }
 
         // Size is padded for head == tail conundrum 
         let padded_size = size + 1;
@@ -118,9 +213,9 @@ impl KJournalBuffer {
         }
 
         // Return KJournalBuffer. size is padded for head == tail conundrum
-        KJournalBuffer {
+        Ok(KJournalBuffer {
             entries, size : padded_size, head:0, tail:0
-        }
+        })
     }
 
     /// Get the count of unread entries.

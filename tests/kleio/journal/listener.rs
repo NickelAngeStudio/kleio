@@ -1,24 +1,17 @@
 use std::{rc::Rc, cell::RefCell};
-use olympus_kleio::journal::{listener::KJournalListenerList, KJournalListenerPrint, KJournalEntrySeverity, KJournalListener, KJournalEntry};
+use olympus_kleio::journal::{listener::{KJournalListenerList, KJournalListenerListError}, KJournalListenerPrint, KJournalEntrySeverity, KJournalListener, KJournalEntry};
 
-/// # Test
-/// kjournal_listener_list_new
-/// 
-/// # Description
+#[test]
 /// Create a new intance of KJournalListenerList.
 /// 
 /// # Verification(s)
 /// V1 | KJournalListenerList::new() create a new instance without error.
-#[test]
 fn kjournal_listener_list_new() {
     // V1 | KJournalListenerList::new() create a new instance without error.
     let _ = KJournalListenerList::new();
 }
 
-/// # Test
-/// kjournal_listener_list_add_listener
-/// 
-/// # Description
+#[test]
 /// Add listener to instance of KJournalListenerList.
 /// 
 /// # Verification(s)
@@ -26,7 +19,6 @@ fn kjournal_listener_list_new() {
 /// V2 | KJournalListenerPrint::new() create a new instance without error.
 /// V3 | KJournalListenerList::add_listener() add listener created.
 /// V4 | KJournalListenerList::count() should be 1.
-#[test]
 fn kjournal_listener_list_add_listener() {
 
     let mut list = KJournalListenerList::new();
@@ -38,77 +30,62 @@ fn kjournal_listener_list_add_listener() {
     let listener = KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
 
     // V3 | KJournalListenerList::add_listener() add listener created.
-    list.add_listener(&listener);
+    handle_listener_error(list.add_listener(&listener));
 
     // V4 | KJournalListenerList::count() should be 1.
     assert!(list.count() == 1, "KJournalListenerList::count() should be 1!");
 }
 
-/// # Test
-/// kjournal_listener_list_add_listener_twice
-/// 
-/// # Description
+#[test]
+#[should_panic]
 /// Add the same listener twice to KJournalListenerList.
 /// 
 /// # Verification(s)
 /// V1 | KJournalListenerList::add_listener() should panic!
-#[test]
-#[should_panic]
 fn kjournal_listener_list_add_listener_twice() {
     let mut list = KJournalListenerList::new();
     let listener = KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
-    list.add_listener(&listener);
+    handle_listener_error(list.add_listener(&listener));
 
 
     // V1 | KJournalListenerList::add_listener() should panic!
-    list.add_listener(&listener);
+    handle_listener_error(list.add_listener(&listener));
 }
 
 
-/// # Test
-/// kjournal_listener_list_remove_listener
-/// 
-/// # Description
+#[test]
 /// Remove a listener from KJournalListenerList.
 /// 
 /// # Verification(s)
 /// V1 | KJournalListener::remove_listener() should remove listener without error.
 /// V2 | KJournalListenerList::count() should be 0 after removal.
-#[test]
 fn kjournal_listener_list_remove_listener() {
     let mut list = KJournalListenerList::new();
     let listener = KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
-    list.add_listener(&listener);
+    handle_listener_error(list.add_listener(&listener));
 
     // V1 | KJournalListener::remove_listener() should remove listener without error.
-    list.remove_listener(&listener);
+    handle_listener_error(list.remove_listener(&listener));
 
     // V2 | KJournalListenerList::count() should be 0 after removal.
     assert!(list.count() == 0, "KJournalListenerList::count() should be 0!");
 }
 
-/// # Test
-/// kjournal_listener_list_remove_listener_not_added
-/// 
-/// # Description
+#[test]
+#[should_panic]
 /// Try to remove a listener from KJournalListenerList that was not added in the first place.
 /// 
 /// # Verification(s)
 /// V1 | KJournalListener::remove_listener() should panic! trying to remove unknown listener.
-#[test]
-#[should_panic]
 fn kjournal_listener_list_remove_listener_not_added() {
     let mut list = KJournalListenerList::new();
     let listener = KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
 
     // V1 | KJournalListener::remove_listener() should panic! trying to remove unknown listener.
-    list.remove_listener(&listener);
+    handle_listener_error(list.remove_listener(&listener));
 }
 
-/// # Test
-/// kjournal_listener_list_clear
-/// 
-/// # Description
+#[test]
 /// Clear a list of listeners.
 /// 
 /// # Verification(s)
@@ -117,7 +94,6 @@ fn kjournal_listener_list_remove_listener_not_added() {
 /// V3 | KJournalListenerList::count() should be 3.
 /// V4 | KJournalListenerList::clear() should remove all listeners without error.
 /// V5 | KJournalListenerList::count() should be 0 after clearing.
-#[test]
 fn kjournal_listener_list_clear() {
     let mut list = KJournalListenerList::new();
 
@@ -128,9 +104,9 @@ fn kjournal_listener_list_clear() {
     let l1 = KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
     let l2= KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
     let l3= KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
-    list.add_listener(&l1);
-    list.add_listener(&l2);
-    list.add_listener(&l3);
+    handle_listener_error(list.add_listener(&l1));
+    handle_listener_error(list.add_listener(&l2));
+    handle_listener_error(list.add_listener(&l3));
 
     // V3 | KJournalListenerList::count() should be 3.
     assert!(list.count() == 3, "KJournalListenerList::count() should be 3!");
@@ -143,10 +119,7 @@ fn kjournal_listener_list_clear() {
 }
 
 
-/// # Test
-/// kjournal_listener_list_notify
-/// 
-/// # Description
+#[test]
 /// Use an implementation of KJournalListener to verify if notify is called correctly.
 /// 
 /// # Verification(s)
@@ -158,7 +131,6 @@ fn kjournal_listener_list_clear() {
 /// v6 | Send a notification for each severity.
 /// V7 | Send differents notifications combinations of 2, 3, 4, 5 and 6 severities.
 /// V8 | Verify notification count of each NotifiedListener.
-#[test]
 fn kjournal_listener_list_notify() {
 
 
@@ -190,21 +162,21 @@ fn kjournal_listener_list_notify() {
     let lp0 = KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
 
     // V4 | Add ALL listeners to list.
-    list.add_listener(&nl0);
-    list.add_listener(&nl1);
-    list.add_listener(&nl2);
-    list.add_listener(&nl3);
-    list.add_listener(&nl4);
-    list.add_listener(&nl5);
-    list.add_listener(&nl6);
-    list.add_listener(&nl7);
-    list.add_listener(&nl8);
-    list.add_listener(&nls0);
-    list.add_listener(&nls1);
-    list.add_listener(&nls2);
-    list.add_listener(&nls3);
-    list.add_listener(&nls4);
-    list.add_listener(&lp0);
+    handle_listener_error(list.add_listener(&nl0));
+    handle_listener_error(list.add_listener(&nl1));
+    handle_listener_error(list.add_listener(&nl2));
+    handle_listener_error(list.add_listener(&nl3));
+    handle_listener_error(list.add_listener(&nl4));
+    handle_listener_error(list.add_listener(&nl5));
+    handle_listener_error(list.add_listener(&nl6));
+    handle_listener_error(list.add_listener(&nl7));
+    handle_listener_error(list.add_listener(&nl8));
+    handle_listener_error(list.add_listener(&nls0));
+    handle_listener_error(list.add_listener(&nls1));
+    handle_listener_error(list.add_listener(&nls2));
+    handle_listener_error(list.add_listener(&nls3));
+    handle_listener_error(list.add_listener(&nls4));
+    handle_listener_error(list.add_listener(&lp0));
     
     // V5 | KJournalListenerList::count() should be 15.
     assert!(list.count() == 15, "KJournalListenerList::count() should be 15!");
@@ -247,15 +219,11 @@ fn kjournal_listener_list_notify() {
  
 }
 
-/// # Test
-/// kjournal_listener_list_notify_empty
-/// 
-/// # Description
+#[test]
 /// Notify an empty list of listeners.
 /// 
 /// # Verification(s)
 /// V1 | KJournalListener::notify() should NOT panic! when empty and notify is called.
-#[test]
 fn kjournal_listener_list_notify_empty() {
     
     let list = KJournalListenerList::new();
@@ -267,6 +235,19 @@ fn kjournal_listener_list_notify_empty() {
 /************
 * FUNCTIONS * 
 ************/
+/// Panic if add_listener or remove_listener result in error.
+fn handle_listener_error(res : Result<usize, KJournalListenerListError>){
+    
+    match  res{
+        Ok(_) => {},
+        Err(err) => match err {
+            KJournalListenerListError::ListenerAlreadyExists => panic!("Listener already exists!"),
+            KJournalListenerListError::ListenerNotFound => panic!("Listener not found!"),
+        }
+        ,
+    }
+
+}
 
 /*************
 * STRUCTURES * 
@@ -282,13 +263,9 @@ struct NotifiedListener {
 }
 
 impl NotifiedListener {
-    /// Create a new instance of NotifiedListener.
+    /// Create a new instance of NotifiedListener with severity listened.
     /// 
-    /// # Argument(s)
-    /// * `severity` - Severities of entry to count notifications.
-    /// 
-    /// # Return
-    /// New NotifiedListener created.
+    /// Returns new NotifiedListener created.
     pub fn new(severity:u8) -> NotifiedListener {
         NotifiedListener { severity, notification_count : Rc::new(RefCell::new(0)) }
     }
@@ -308,36 +285,6 @@ impl<'a> KJournalListener for NotifiedListener{
 
        
         b.replace(b.take() + 1);
-
-        
-
-       
-        //let mut c = &*b;
-        //*c +=1 ;
-
-
-
-        //let a = Rc::make_mut(&mut self.notification_count);
-        //*a += 1;
-
-        //let mut a = *self.notification_count.as_mut();
-        //a+=1;
-
-        /*
-        let mut p = self.notification_count.clone();
-        //
-        let mut a = Rc::get_mut(&mut p);
-
-        match  a {
-            Some(v) => {
-                let b = v.as_mut();
-                *b+=1;
-            },
-            None => todo!(),
-        }
-        */
-
-        //**a +=1 ;
     }
 
     fn set_severity(&mut self, severity:u8){

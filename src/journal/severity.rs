@@ -27,14 +27,16 @@ pub mod KJournalEntrySeverity {
     pub const ALL_WITH_DEBUG: u8 = 63;
 }
 
-/// Get a 1 character symbol of severity.
+/// Returns a 1 character symbol of severity.
 /// 
-/// # Argument(s)
-/// * `severity` - Severities of entry to get symbol.
-/// 
-/// # Return
-/// Severity symbol. "?" if not found.
-pub fn get_severity_symbol(severity : u8) -> char {
+/// * DEBUG => 'D'
+/// * OTHER => 'O'
+/// * INFORMATION => 'I'
+/// * WARNING => 'W'
+/// * ERROR => 'E'
+/// * FATAL => 'F'
+/// * UNKNOWN => '?'
+pub fn get_journal_severity_symbol(severity : u8) -> char {
 
     match severity {
         KJournalEntrySeverity::DEBUG => 'D',

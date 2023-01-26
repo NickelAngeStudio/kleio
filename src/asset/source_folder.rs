@@ -1,4 +1,3 @@
-use core::panic;
 use std::{path::{PathBuf}, fs::{File}, io::Read, time::{SystemTime}};
 use crate::asset::KAssetSource;
 
@@ -26,40 +25,73 @@ pub struct KAssetSourceFolder {
     metadata : String
 }
 
+/// Enumeration of possible [KAssetSourceFolder] errors.
+pub enum KAssetSourceFolderError {
+    /// Happens when [`folder_path`][PathBuf] used to create [KAssetSourceFolder] is not found.
+    FolderNotFound,
+
+    /// Happens when [`folder_path`][PathBuf] used to create [KAssetSourceFolder] is not a folder.
+    PathIsNotFolder,
+
+    /// Happens when an error occurred while creating folder metadata.
+    MetadataCreationError,
+}
+
+impl std::fmt::Debug for KAssetSourceFolderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::FolderNotFound => write!(f, "FolderNotFound"),
+            Self::PathIsNotFolder => write!(f, "PathIsNotFolder"),
+            Self::MetadataCreationError => write!(f, "MetadataCreationError"),
+        }
+    }
+}
+
 impl KAssetSourceFolder {
-    /// Create a new KAssetSourceFolder from a folder path.
+    /// Create a new [KAssetSourceFolder] from a [`folder_path`][PathBuf].
     /// 
-    /// Meta data will be folder_path and 
+    /// Metadata JSON format :<br>
+    /// {<br>
+    ///     "path" : "\path\to\folder",<br>
+    ///     "created" : "{epoch_time}",<br>
+    ///     "modified" : "{epoch_time}",<br>
+    /// }
     /// 
-    /// # Argument(s)
-    /// * `folder_path` - Path of the folder to read data from.
+    /// Returns `Ok(`[KAssetSourceFolder]`)` if successful.
     /// 
-    /// # Panic
-    /// Will panic if folder not found, if not a folder or insufficient permissions.
-    pub fn new(folder_path : PathBuf) -> KAssetSourceFolder {
+    /// # Error(s)
+    /// Returns `Err(`[KAssetSourceFolderError::FolderNotFound]`)` if folder is not found.
+    /// 
+    /// Returns `Err(`[KAssetSourceFolderError::PathIsNotFolder]`)` if [`folder_path`][PathBuf] is not a folder.
+    /// 
+    /// Returns `Err(`[KAssetSourceFolderError::MetadataCreationError]`)` if an error occurred while creating metadata.
+    pub fn new(folder_path : PathBuf) -> Result<KAssetSourceFolder, KAssetSourceFolderError> {
 
 
         if !folder_path.exists() {
-            // Panic if folder doesn't exists
-            panic!("Folder {:?} not found!", folder_path.as_os_str());
+            return Err(KAssetSourceFolderError::FolderNotFound);
         }
 
-        // Panic if path isn't a folder
         if !folder_path.is_dir(){
-            panic!("{:?} is not a folder!", folder_path.as_os_str());
+            return Err(KAssetSourceFolderError::PathIsNotFolder);
         }
 
-        KAssetSourceFolder {
-            metadata : Self::create_metadata(&folder_path),
-            folder_path,
-            
+        match  Self::create_metadata(&folder_path)  {
+            Ok(metadata) => Ok(KAssetSourceFolder {
+                metadata,
+                folder_path,
+                
+            }),
+            Err(_) => Err(KAssetSourceFolderError::MetadataCreationError),
         }
+        
     }
 
     /// Create KAssetSourceFolder metadata which contains path, created and modified in JSON format.
     /// 
-    /// If an error occur while retrieving metadata, `(metadata _error)` value will fill json variable.
-    fn create_metadata(folder_path : &PathBuf)->String {
+    /// Return `Ok(String)` with metadata created
+    /// or Err(KAssetSourceFolderError::MetadataCreationError) if an error occurred.
+    fn create_metadata(folder_path : &PathBuf)->Result<String, KAssetSourceFolderError> {
 
         let mut metadata : String = "{ \"path\":\"".to_owned() +  &folder_path.clone().into_os_string().into_string().unwrap().to_owned() + &"\",".to_owned();
 
@@ -73,7 +105,7 @@ impl KAssetSourceFolder {
                     Ok(st) => {
                         match st.duration_since(SystemTime::UNIX_EPOCH) {
                             Ok(n) => metadata.push_str(&("\"created\":\"".to_owned() + &n.as_millis().to_string().to_owned() + &"\",".to_owned())),
-                            Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+                            Err(_) => return Err(KAssetSourceFolderError::MetadataCreationError),
                         }
                         
                     },
@@ -87,7 +119,7 @@ impl KAssetSourceFolder {
                     Ok(st) => {
                         match st.duration_since(SystemTime::UNIX_EPOCH) {
                             Ok(n) => metadata.push_str(&("\"modified\":\"".to_owned() + &n.as_millis().to_string().to_owned() + &"\",".to_owned())),
-                            Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+                            Err(_) => return Err(KAssetSourceFolderError::MetadataCreationError),
                         }
                         
                     },
@@ -95,14 +127,12 @@ impl KAssetSourceFolder {
                 }
 
             },
-            // If error, still continue BUT created and modified will have (metadata _error) value
-            Err(err) => {
-                metadata.push_str("\"created\":\"(metadata _error)\",");
-                metadata.push_str("\"modified\":\"(metadata _error)\",");
+            Err(_) => {
+                return Err(KAssetSourceFolderError::MetadataCreationError)
             },
         }
 
-        metadata
+        Ok(metadata)
 
     }
 

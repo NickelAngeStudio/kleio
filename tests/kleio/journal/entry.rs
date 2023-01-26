@@ -1,17 +1,13 @@
 use std::{time::{SystemTime, Duration}, thread::sleep};
 use olympus_kleio::journal::{KJournalEntry, KJournalEntrySeverity};
 
-/// # Test
-/// kjournal_entry_new
-/// 
-/// # Description
+#[test]
 /// Create a new KJournal entry
 /// 
 /// # Verification(s)
 /// V1 | KJournalEntry::new() create an entry without error.
 /// V2 | Verify severity and description values to be the same as control.
 /// V3 | Verify that entry date is valid.
-#[test]
 fn kjournal_entry_new() {
     // Initial variables for comparison.
     let severity = KJournalEntrySeverity::INFORMATION;
@@ -33,17 +29,13 @@ fn kjournal_entry_new() {
 
 }
 
-/// # Test
-/// kjournal_entry_update
-/// 
-/// # Description
+#[test]
 /// Update a KJournalEntry values.
 /// 
 /// # Verification(s)
 /// V1 | KJournalEntry::update() update values without error.
 /// V2 | Verify severity and description values to be the same as control.
 /// V3 | Verify that entry date is valid.
-#[test]
 fn kjournal_entry_update() {
     // Initial variables for comparison.
     let severity = KJournalEntrySeverity::INFORMATION;

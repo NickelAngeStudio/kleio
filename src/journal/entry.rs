@@ -27,49 +27,31 @@ pub struct KJournalEntry {
 
 
 impl KJournalEntry {
-    /// Create a new [`KJournalEntry`] from severity and description. Date and time will be added automatically.
+    /// Create a new [`KJournalEntry`] from [severity][`super::KJournalEntrySeverity`] and description. Date and time will be added automatically.
     /// 
-    /// # Argument(s)
-    /// * `severity` - [`super::KJournalEntrySeverity`] of the entry as u8.
-    /// * `description` - Description or metadata of entry.
-    /// 
-    /// # Return
-    /// New [`KJournalEntry`] with new date and time.
+    /// Return New [`KJournalEntry`] with new date and time.
     pub fn new(severity : u8, description : String) -> KJournalEntry {
         KJournalEntry { severity, date_time: SystemTime::now(), description }
     }
 
-    /// Update Journal entry with a new severity and description. Date and time will be modified automatically.
-    /// 
-    /// # Argument(s)
-    /// * `severity` - [`super::KJournalEntrySeverity`] of the entry as u8.
-    /// * `description` - Description or metadata of entry.
+    /// Update Journal entry with a new [severity][`super::KJournalEntrySeverity`] and description. Date and time will be modified automatically.
     pub fn update(&mut self, severity : u8, description : String){
         self.date_time = SystemTime::now();
         self.severity = severity;
         self.description = description;
     }
 
-    /// Get entry [`super::KJournalEntrySeverity`].
-    /// 
-    /// # Return
-    /// Entry [`super::KJournalEntrySeverity`].
+    /// Returns entry [severity][`super::KJournalEntrySeverity`].
     pub fn get_severity(&self) -> u8{
         self.severity
     }
 
-    /// Get entry date and time as [`SystemTime`].
-    /// 
-    /// # Return
-    /// Entry date and time.
+    /// Returns entry date and time as [`SystemTime`].
     pub fn get_date_time(&self) -> SystemTime{
         self.date_time
     }
 
-    /// Get entry description / metadata.
-    /// 
-    /// # Return
-    /// Get entry description / metadata.
+    /// Returns entry description / metadata.
     pub fn get_description(&self) -> &String {
         &self.description
     }

@@ -1,4 +1,4 @@
-use super::{KJournalListener, get_severity_symbol};
+use super::{KJournalListener, get_journal_severity_symbol};
 
 /// Implementation of [KJournalListener] that print new entry into console.
 pub struct KJournalListenerPrint {
@@ -8,13 +8,9 @@ pub struct KJournalListenerPrint {
 }
 
 impl KJournalListenerPrint {
-    /// Create a new instance of KJournalListenerPrint.
+    /// Create a new instance of [KJournalListenerPrint] that print new entry to log if they match listened [severity][super::KJournalEntrySeverity].
     /// 
-    /// # Argument(s)
-    /// * `severity` - Severities of entry to print. Will ignore other entries.
-    /// 
-    /// # Return
-    /// New KJournalListenerPrint created.
+    /// Returns new [KJournalListenerPrint] created.
     pub fn new(severity : u8) -> KJournalListenerPrint {
         KJournalListenerPrint { severity }
     }
@@ -22,7 +18,7 @@ impl KJournalListenerPrint {
 
 impl KJournalListener for KJournalListenerPrint {
     fn notify(&self, new_entry : &super::KJournalEntry) {
-        println!("[{} {:?}] {}", get_severity_symbol(new_entry.get_severity()), new_entry.get_date_time(), new_entry.get_description())
+        println!("[{} {:?}] {}", get_journal_severity_symbol(new_entry.get_severity()), new_entry.get_date_time(), new_entry.get_description())
     }
 
     fn set_severity(&mut self, severity:u8) {

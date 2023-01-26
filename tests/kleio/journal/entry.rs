@@ -11,7 +11,7 @@ use olympus_kleio::journal::{KJournalEntry, KJournalEntrySeverity};
 fn kjournal_entry_new() {
     // Initial variables for comparison.
     let severity = KJournalEntrySeverity::INFORMATION;
-    let description = String::from("Entry kjournal_entry_new");
+    let description = "Entry kjournal_entry_new";
 
     // V1 | KJournalEntry::new() create an entry without error.
     let j = KJournalEntry::new(severity, description.clone());
@@ -39,7 +39,7 @@ fn kjournal_entry_new() {
 fn kjournal_entry_update() {
     // Initial variables for comparison.
     let severity = KJournalEntrySeverity::INFORMATION;
-    let description = String::from("Entry kjournal_entry_new");
+    let description = "Entry kjournal_entry_new";
 
     // Create new entry.
     let mut j = KJournalEntry::new(severity, description.clone());
@@ -52,7 +52,7 @@ fn kjournal_entry_update() {
 
     // Update value and entry
     let severity = KJournalEntrySeverity::ERROR;
-    let description = String::from("Entry updated");
+    let description = "Entry updated";
 
     // V1 | KJournalEntry::update() update values without error.
     j.update(severity, description.clone());

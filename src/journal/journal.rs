@@ -2,16 +2,26 @@ use super::{KJournalEntry, listener::KJournalListenerList, listener::{KJournalLi
 
 /// ##### Journal use for logging events and information.
 /// 
+/// KJournal uses a circular buffer of size between [KJOURNAL_BUFFER_MIN] and [KJOURNAL_BUFFER_MAX].
+/// 
 /// # Example
-/// Create a new [KJournal] with minimum buffer size.
+/// Create a new [KJournal] with minimum buffer size, with a listener to write entries.
 /// ```
-/// use olympus_kleio::journal::{KJournal, KJOURNAL_BUFFER_MIN};
+/// // Import needed modules
+/// use olympus_kleio::journal::{KJournal, KJournalEntrySeverity, KJournalListenerPrint, KJOURNAL_BUFFER_MIN};
 /// 
+/// // Create a journal that log any severity.
+/// let mut j = KJournal::new("J1", KJournalEntrySeverity::ALL_WITH_DEBUG, KJOURNAL_BUFFER_MIN).unwrap();
 /// 
+/// // Create a listener that will print each entry to the KJournal
+/// let l = KJournalListenerPrint::new(KJournalEntrySeverity::ALL_WITH_DEBUG);
 /// 
+/// // Add listener to journal
+/// j.add_listener(&l);
+/// 
+/// // Write an entry to the KJournal that will also be listened by KJournalListenerPrint
+/// j.write(KJournalEntrySeverity::ERROR, "Error detected");
 /// ```
-/// 
-/// TODO: More doc and examples. Min and Max size
 pub struct KJournal<'a> {
 
     /// Name of the journal
@@ -72,24 +82,28 @@ impl<'a> KJournal<'a> {
 
     /// Write a new entry to [KJournal] with [`KJournalEntrySeverity`] and description if entry is not ignored.
     pub fn write(&mut self, severity : u8, description : &str) {
-        todo!()
+        
+        // Only write and notify if journal log this severity.
+        if self.severity & severity > 0 {
+            self.listeners.notify(self.entries.write(severity, description));
+        }
     }
 
     /// Pop the journal latest entry.
     /// 
     /// Returns [Some(KJournalEntry)](https://doc.rust-lang.org/beta/core/option/enum.Option.html#variant.Some) if any or [None] otherwise.
-    pub fn read(&self) -> Option<&KJournalEntry> {
-        todo!()
+    pub fn read(&mut self) -> Option<&KJournalEntry> {
+        self.entries.latest()
     }
 
     /// Get count of unread [KJournalEntry] as usize.
     pub fn unread(&self) -> usize {
-        todo!()
+        self.entries.unread()
     }
 
     /// Clear the [KJournal] to 0 entries.
     pub fn clear(&mut self) {
-        todo!()
+        self.entries.clear()
     }
 
     /// Add [KJournalListener] to the [KJournal].
@@ -100,7 +114,7 @@ impl<'a> KJournal<'a> {
     /// Returns `Err(`[KJournalListenerListError::ListenerAlreadyExists]`)` if listener is already in list.
     pub fn add_listener(&mut self, listener : &'a (dyn KJournalListener + 'a)) -> Result<usize, KJournalListenerListError> {
         
-        todo!()
+        self.listeners.add_listener(listener)
 
     }
 
@@ -111,18 +125,18 @@ impl<'a> KJournal<'a> {
     /// # Error(s)
     /// Returns `Err(`[KJournalListenerListError::ListenerNotFound]`)` if listener not found.
     pub fn remove_listener(&mut self, listener : &dyn KJournalListener) -> Result<usize, KJournalListenerListError> {
-        todo!()
+        self.listeners.remove_listener(listener)
     }
 
 
     /// Set [`KJournalEntrySeverity`] flags to log in journal. Will ignore other severity and won't push them to listeners.
     pub fn set_severity(&mut self, severity : u8) {
-        todo!()
+        self.severity = severity;
     } 
 
     /// Get [`KJournalEntrySeverity`] the [KJournal] listen to.
     pub fn get_severity(&self) -> u8 {
-        todo!()
+        self.severity
     }
 
     /// Set the maximum entries kept in [KJournal].
@@ -137,17 +151,28 @@ impl<'a> KJournal<'a> {
     /// 
     /// Returns Err([KJournalError::BufferSizeTooBig]) if `max_entries` > [KJOURNAL_BUFFER_MAX].
     pub fn set_max_entries(&mut self, max_entries : usize) -> Result<usize, KJournalError> {
-        todo!()
 
         // Recreate buffer
-
-        // Store new maximum entries
+        match  KJournalBuffer::new(max_entries) {
+            Ok(buffer) => 
+                {
+                    // Store new maximum entries
+                    self.entries = buffer;
+                    Ok(max_entries)
+                }
+            Err(error) => Err(error),
+        }        
     }
 
     /// Get the buffer size of [KJournal].
     pub fn get_max_entries(&self) -> usize {
-        todo!()
+        self.entries.size()
     }
+
+    /// Get the name/Id of the [KJournal]
+    pub fn get_name(&self) -> &String {
+        &self.name
+    } 
 
     
 
@@ -209,7 +234,7 @@ impl KJournalBuffer {
 
         // Create all entries.
         for _ in 0..padded_size {
-            entries.push( KJournalEntry::new(KJournalEntrySeverity::OTHER, "".to_string()));
+            entries.push( KJournalEntry::new(KJournalEntrySeverity::OTHER, ""));
         }
 
         // Return KJournalBuffer. size is padded for head == tail conundrum
@@ -219,9 +244,6 @@ impl KJournalBuffer {
     }
 
     /// Get the count of unread entries.
-    /// 
-    /// # Return
-    /// Count of unread entries.
     pub fn unread(&self) -> usize {
         if self.head < self.tail {
             return self.head + self.size - self.tail;
@@ -231,9 +253,6 @@ impl KJournalBuffer {
     }
 
     /// Get the size of the buffer
-    /// 
-    /// # Return
-    /// Size of the buffer.
     pub fn size(&self) -> usize {
         self.size -1
     }
@@ -243,17 +262,18 @@ impl KJournalBuffer {
         self.tail = self.head;
     }
 
-    /// Write a new entry to the buffer.
+    /// Write a new entry to the buffer with severity and description.
     /// 
-    /// * `severity` - Severity of the new entry.
-    /// * `description` - Description / Metadata of the new entry,
-    pub fn write(&mut self, severity : u8, description : String) {
+    /// Returns a reference to new entry written.
+    pub fn write(&mut self, severity : u8, description : &str) -> &KJournalEntry {
 
         // Increment head.
         self.inc_head();
 
         // Write entry into buffer
         self.entries[self.head].update(severity, description);
+
+        &self.entries[self.head]
     }
 
     /// Get the latest [`KJournalEntry`] in the buffer.

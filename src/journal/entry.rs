@@ -30,15 +30,15 @@ impl KJournalEntry {
     /// Create a new [`KJournalEntry`] from [severity][`super::KJournalEntrySeverity`] and description. Date and time will be added automatically.
     /// 
     /// Return New [`KJournalEntry`] with new date and time.
-    pub fn new(severity : u8, description : String) -> KJournalEntry {
-        KJournalEntry { severity, date_time: SystemTime::now(), description }
+    pub fn new(severity : u8, description : &str) -> KJournalEntry {
+        KJournalEntry { severity, date_time: SystemTime::now(), description : description.to_string() }
     }
 
     /// Update Journal entry with a new [severity][`super::KJournalEntrySeverity`] and description. Date and time will be modified automatically.
-    pub fn update(&mut self, severity : u8, description : String){
+    pub fn update(&mut self, severity : u8, description : &str){
         self.date_time = SystemTime::now();
         self.severity = severity;
-        self.description = description;
+        self.description = description.to_string();
     }
 
     /// Returns entry [severity][`super::KJournalEntrySeverity`].

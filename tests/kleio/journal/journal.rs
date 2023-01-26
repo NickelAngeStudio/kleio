@@ -6,10 +6,14 @@ use olympus_kleio::journal::{ KJournal, KJournalEntrySeverity, KJOURNAL_BUFFER_M
 /// 
 /// # Verification(s)
 /// V1 | New KJournal created without error.
+/// V2 | Verify KJournal name with control.
 fn kjournal_new() {
     // V1 | New KJournal created without error.
     match KJournal::new("J1", KJournalEntrySeverity::ALL_WITH_DEBUG, KJOURNAL_BUFFER_MIN) {
-        Ok(_) => {},
+        Ok(j) => {
+            // V2 | Verify KJournal name with control.
+            assert!(j.get_name().eq(&"J1".to_string()), "KJournal name error!");
+        },
         Err(_) => panic!("Error while creating KJournal"),
     }
 }
@@ -201,8 +205,8 @@ fn kjournal_listeners() {
     assert!(nl4.get_notification_count() == 4, "NotifiedListener4::get_notification_count() should be 4 instead of {}!", nl4.get_notification_count());
     assert!(nl5.get_notification_count() == 2, "NotifiedListener5::get_notification_count() should be 2 instead of {}!", nl5.get_notification_count());
     assert!(nl6.get_notification_count() == 2, "NotifiedListener6::get_notification_count() should be 2 instead of {}!", nl6.get_notification_count());
-    assert!(nl7.get_notification_count() == 18, "NotifiedListener7::get_notification_count() should be 18 instead of {}!", nl7.get_notification_count());
-    assert!(nl8.get_notification_count() == 20, "NotifiedListener8::get_notification_count() should be 20 instead of {}!", nl8.get_notification_count());
+    assert!(nl7.get_notification_count() == 11, "NotifiedListener7::get_notification_count() should be 11 instead of {}!", nl7.get_notification_count());
+    assert!(nl8.get_notification_count() == 12, "NotifiedListener8::get_notification_count() should be 12 instead of {}!", nl8.get_notification_count());
 
     // V9 | Remove all listeners successfully.
     handle_listener_error(j.remove_listener(&nl0));
@@ -261,7 +265,10 @@ fn kjournal_set_max_entries() {
     assert!(j.get_max_entries() == KJOURNAL_BUFFER_MIN, "KJournal buffer creation size error!");
 
     // V2 | set_max_entries() create a new buffer without error.
-    j.set_max_entries(KJOURNAL_BUFFER_MAX);
+    match j.set_max_entries(KJOURNAL_BUFFER_MAX){
+        Ok(_) => {},
+        Err(_) => panic!("Error while setting new max entries!"),
+    }
 
     // V3 | get_max_entries() gives the new KJournal buffer size.
     assert!(j.get_max_entries() == KJOURNAL_BUFFER_MAX, "New buffer size error!");
@@ -293,7 +300,7 @@ impl NotifiedListener {
     /// Get the count of notifications.
     pub fn get_notification_count(&self) -> usize {
         let a = self.notification_count.clone();
-        a.as_ref().take()
+        a.as_ref().clone().take()
     }
 }
 
@@ -357,15 +364,15 @@ fn handle_listener_error(res : Result<usize, KJournalListenerListError>){
 
 /// Write 10 journals entries
 fn write_10_journal_entries(j : &mut KJournal){
-    j.write(KJournalEntrySeverity::DEBUG, &"Debug entry".to_owned());
-    j.write(KJournalEntrySeverity::OTHER, &"Other entry".to_owned());
-    j.write(KJournalEntrySeverity::INFORMATION, &"Information entry".to_owned());
-    j.write(KJournalEntrySeverity::WARNING, &"Warning entry".to_owned());
-    j.write(KJournalEntrySeverity::ERROR, &"Error entry".to_owned());
-    j.write(KJournalEntrySeverity::FATAL, &"Fatal entry".to_owned());
-    j.write(KJournalEntrySeverity::INFORMATION, &"Information entry".to_owned());
-    j.write(KJournalEntrySeverity::WARNING, &"Warning entry".to_owned());
-    j.write(KJournalEntrySeverity::ERROR, &"Error entry".to_owned());
-    j.write(KJournalEntrySeverity::FATAL, &"Fatal entry".to_owned());
+    j.write(KJournalEntrySeverity::DEBUG, "Debug entry");
+    j.write(KJournalEntrySeverity::OTHER, "Other entry");
+    j.write(KJournalEntrySeverity::INFORMATION, "Information entry");
+    j.write(KJournalEntrySeverity::WARNING, "Warning entry");
+    j.write(KJournalEntrySeverity::ERROR, "Error entry");
+    j.write(KJournalEntrySeverity::FATAL, "Fatal entry");
+    j.write(KJournalEntrySeverity::INFORMATION, "Information entry");
+    j.write(KJournalEntrySeverity::WARNING, "Warning entry");
+    j.write(KJournalEntrySeverity::ERROR, "Error entry");
+    j.write(KJournalEntrySeverity::FATAL, "Fatal entry");
 
 }

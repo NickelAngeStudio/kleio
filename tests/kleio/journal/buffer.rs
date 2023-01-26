@@ -110,7 +110,7 @@ fn kjournal_buffer_write() {
     let mut kb = KJournalBuffer::new(buffer_size).unwrap();
 
     // V1 | KJournalBuffer::write() write an entry into buffer without error.
-    kb.write(KJournalEntrySeverity::DEBUG, "Debug entry".to_owned());
+    kb.write(KJournalEntrySeverity::DEBUG, "Debug entry");
 
     // V2 | Entry created is verified.
     verify_journal_entry(kb.latest(), KJournalEntrySeverity::DEBUG, &"Debug entry".to_owned());
@@ -118,21 +118,21 @@ fn kjournal_buffer_write() {
     // V3 | Write multiple different entries without error.
     // V4 | Write more entries that buffer MAX without error.
     for _ in 0..(KJOURNAL_BUFFER_MAX + 5) {
-        kb.write(KJournalEntrySeverity::DEBUG, "Debug entry".to_owned());
-        kb.write(KJournalEntrySeverity::OTHER, "Other entry".to_owned());
-        kb.write(KJournalEntrySeverity::INFORMATION, "Information entry".to_owned());
-        kb.write(KJournalEntrySeverity::WARNING, "Warning entry".to_owned());
-        kb.write(KJournalEntrySeverity::ERROR, "Error entry".to_owned());
-        kb.write(KJournalEntrySeverity::FATAL, "Fatal entry".to_owned());
+        kb.write(KJournalEntrySeverity::DEBUG, "Debug entry");
+        kb.write(KJournalEntrySeverity::OTHER, "Other entry");
+        kb.write(KJournalEntrySeverity::INFORMATION, "Information entry");
+        kb.write(KJournalEntrySeverity::WARNING, "Warning entry");
+        kb.write(KJournalEntrySeverity::ERROR, "Error entry");
+        kb.write(KJournalEntrySeverity::FATAL, "Fatal entry");
     }
 
     // V5 | Retrieve and verify entries in correct order. (latest to oldest)
-    verify_journal_entry(kb.latest(), KJournalEntrySeverity::FATAL, &"Fatal entry".to_owned());
-    verify_journal_entry(kb.latest(), KJournalEntrySeverity::ERROR, &"Error entry".to_owned());
-    verify_journal_entry(kb.latest(), KJournalEntrySeverity::WARNING, &"Warning entry".to_owned());
-    verify_journal_entry(kb.latest(), KJournalEntrySeverity::INFORMATION, &"Information entry".to_owned());
-    verify_journal_entry(kb.latest(), KJournalEntrySeverity::OTHER, &"Other entry".to_owned());
-    verify_journal_entry(kb.latest(), KJournalEntrySeverity::DEBUG, &"Debug entry".to_owned());
+    verify_journal_entry(kb.latest(), KJournalEntrySeverity::FATAL, "Fatal entry");
+    verify_journal_entry(kb.latest(), KJournalEntrySeverity::ERROR, "Error entry");
+    verify_journal_entry(kb.latest(), KJournalEntrySeverity::WARNING, "Warning entry");
+    verify_journal_entry(kb.latest(), KJournalEntrySeverity::INFORMATION, "Information entry");
+    verify_journal_entry(kb.latest(), KJournalEntrySeverity::OTHER, "Other entry");
+    verify_journal_entry(kb.latest(), KJournalEntrySeverity::DEBUG, "Debug entry");
 
 }
 
@@ -158,7 +158,7 @@ fn kjournal_buffer_unread() {
     assert!(kb.unread() == 0, "Unread ({}) count incorrect! Should be {}!", kb.unread(), 0);
 
     // Write debug entry
-    kb.write(KJournalEntrySeverity::DEBUG, "Debug entry".to_owned());
+    kb.write(KJournalEntrySeverity::DEBUG, "Debug entry");
 
     // V2 | KJournalBuffer::unread() size must be 1 after writing an entry.
     assert!(kb.unread() == 1, "Unread ({}) count incorrect! Should be {}!", kb.unread(), 1);
@@ -171,12 +171,12 @@ fn kjournal_buffer_unread() {
 
     // Write a bunch of entries.
     for _ in 0..(KJOURNAL_BUFFER_MAX + 5) {
-        kb.write(KJournalEntrySeverity::DEBUG, "Debug entry".to_owned());
-        kb.write(KJournalEntrySeverity::OTHER, "Other entry".to_owned());
-        kb.write(KJournalEntrySeverity::INFORMATION, "Information entry".to_owned());
-        kb.write(KJournalEntrySeverity::WARNING, "Warning entry".to_owned());
-        kb.write(KJournalEntrySeverity::ERROR, "Error entry".to_owned());
-        kb.write(KJournalEntrySeverity::FATAL, "Fatal entry".to_owned());
+        kb.write(KJournalEntrySeverity::DEBUG, "Debug entry");
+        kb.write(KJournalEntrySeverity::OTHER, "Other entry");
+        kb.write(KJournalEntrySeverity::INFORMATION, "Information entry");
+        kb.write(KJournalEntrySeverity::WARNING, "Warning entry");
+        kb.write(KJournalEntrySeverity::ERROR, "Error entry");
+        kb.write(KJournalEntrySeverity::FATAL, "Fatal entry");
 
     }
 
@@ -234,7 +234,7 @@ fn kjournal_buffer_stress() {
         assert!(kb.unread() == 0, "Unread ({}) count incorrect! Should be {}!", kb.unread(), 0);
 
         // V3 | Write an entry into buffer and verify size is 1.
-        kb.write(KJournalEntrySeverity::DEBUG, "Debug entry".to_owned());
+        kb.write(KJournalEntrySeverity::DEBUG, "Debug entry");
         assert!(kb.unread() == 1, "Unread ({}) count incorrect! Should be {}!", kb.unread(), 1);
 
         // V4 | Verify that entry values are correct.
@@ -242,12 +242,12 @@ fn kjournal_buffer_stress() {
 
         // V5 | Fill buffer with entries.
         for _ in 0..buffer_size + 5{
-            kb.write(KJournalEntrySeverity::DEBUG, "Debug entry".to_owned());
-            kb.write(KJournalEntrySeverity::OTHER, "Other entry".to_owned());
-            kb.write(KJournalEntrySeverity::INFORMATION, "Information entry".to_owned());
-            kb.write(KJournalEntrySeverity::WARNING, "Warning entry".to_owned());
-            kb.write(KJournalEntrySeverity::ERROR, "Error entry".to_owned());
-            kb.write(KJournalEntrySeverity::FATAL, "Fatal entry".to_owned());
+            kb.write(KJournalEntrySeverity::DEBUG, "Debug entry");
+            kb.write(KJournalEntrySeverity::OTHER, "Other entry");
+            kb.write(KJournalEntrySeverity::INFORMATION, "Information entry");
+            kb.write(KJournalEntrySeverity::WARNING, "Warning entry");
+            kb.write(KJournalEntrySeverity::ERROR, "Error entry");
+            kb.write(KJournalEntrySeverity::FATAL, "Fatal entry");
 
         }
 
@@ -286,7 +286,7 @@ fn kjournal_buffer_stress() {
 /// 
 /// # Panic
 /// Will panic if any entry parameters are wrong.
-fn verify_journal_entry(entry: Option<&KJournalEntry>, severity:u8, desc : &String){
+fn verify_journal_entry(entry: Option<&KJournalEntry>, severity:u8, desc : &str){
 
     match entry {
         Some(entry) => {

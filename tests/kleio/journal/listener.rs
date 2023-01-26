@@ -182,23 +182,23 @@ fn kjournal_listener_list_notify() {
     assert!(list.count() == 15, "KJournalListenerList::count() should be 15!");
 
     // v6 | Send a notification for each severity.
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG, "DEBUG".to_owned()));
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::OTHER, "OTHER".to_owned()));
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::INFORMATION, "INFORMATION".to_owned()));
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::WARNING, "WARNING".to_owned()));
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::ERROR, "ERROR".to_owned()));
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::FATAL, "FATAL".to_owned()));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG, "DEBUG"));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::OTHER, "OTHER"));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::INFORMATION, "INFORMATION"));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::WARNING, "WARNING"));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::ERROR, "ERROR"));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::FATAL, "FATAL"));
 
     // V7 | Send differents notifications combinations of 2, 3, 4, 5 and 6 severities.
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER, "DO".to_owned()));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER, "DO"));
     list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
-        KJournalEntrySeverity::INFORMATION, "DOI".to_owned()));
+        KJournalEntrySeverity::INFORMATION, "DOI"));
     list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
-        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING, "DOIW".to_owned()));
+        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING, "DOIW"));
     list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
-        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR, "DOIWE".to_owned()));
+        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR, "DOIWE"));
     list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG | KJournalEntrySeverity::OTHER |
-        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR | KJournalEntrySeverity::FATAL, "DOIWEF".to_owned()));
+        KJournalEntrySeverity::INFORMATION | KJournalEntrySeverity::WARNING | KJournalEntrySeverity::ERROR | KJournalEntrySeverity::FATAL, "DOIWEF"));
 
     // V8 | Verify notification count of each NotifiedListener.
     assert!(nl0.get_notification_count() == 0, "NotifiedListener0::get_notification_count() should be 0 instead of {}!", nl0.get_notification_count());
@@ -229,7 +229,7 @@ fn kjournal_listener_list_notify_empty() {
     let list = KJournalListenerList::new();
 
     // V1 | KJournalListener::notify() should NOT panic! when empty and notify is called.
-    list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG, "DEBUG".to_owned()));
+    list.notify(&KJournalEntry::new(KJournalEntrySeverity::DEBUG, "DEBUG"));
 }
 
 /************

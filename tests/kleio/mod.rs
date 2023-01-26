@@ -6,3 +6,5 @@ pub mod asset;
 pub mod journal;
 
 
+// Contains integration and unit tests for Kleio events
+pub mod event;

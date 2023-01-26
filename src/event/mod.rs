@@ -1,32 +1,34 @@
-/*
- * @file kleio/event/mod.rs
- *
- * @module olympus::kleio::event
- *
- * @brief Contains KEventLog struct, KEvent enum
- * 
- * @details
- * Contains KEventLog struct, KEvent enum
- * 
- * @author Mathieu Grenier
- * @copyright NickelAnge.Studio
- *
- * @date 2022-10-03
- *
- * @version
- * 1.0 : 2022-10-03 | Mathieu Grenier | Code creation
- *
- * @ref
- * 
- * @todo
- */
+/// # Re-export for Public API
+#[doc(inline)]
+pub use mouse::KEventMouse as KEventMouse;
+pub use window::KEventWindow as KEventWindow;
+pub use controller::KEventController as KEventController;
+pub use keyboard::KEventKeyboard as KEventKeyboard;
+pub use event::KEvent as KEvent;
+pub use register::KEventRegister as KEventRegister;
 
- /// TODO : Documentation
- pub struct KEventLog {
 
- }
+// Kleio KEvent
+#[doc(hidden)]
+pub mod event;
 
- /// TODO : Documentation
- pub enum KEvent {
+// Kleio KEventRegister
+#[doc(hidden)]
+pub mod register;
 
- }
+// Kleio window events
+#[doc(hidden)]
+pub mod window;
+
+// Kleio keyboard events
+#[doc(hidden)]
+pub mod keyboard;
+
+// Kleio mouse events
+#[doc(hidden)]
+pub mod mouse;
+
+// Kleio controller events
+#[doc(hidden)]
+pub mod controller;
+

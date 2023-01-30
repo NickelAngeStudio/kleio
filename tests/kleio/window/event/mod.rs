@@ -4,5 +4,5 @@ pub mod event;
 
 // Contains tests for KEventRegister
 #[cfg(test)]
-pub mod register;
+pub mod queue;
 

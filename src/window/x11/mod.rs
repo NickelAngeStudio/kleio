@@ -3,22 +3,17 @@
 #[allow(non_upper_case_globals)]    // Imported C global aren't formatted according to convention.
 pub mod constant;
 
+/// Contains X11 Event definition
+#[allow(unused)]                    // Remove unused variable notification
+#[allow(non_snake_case)]            // Imported C members aren't formatted according to convention.
+pub mod event;
+
 /// Contains X11 C Bind
 pub mod bind;
 
 /// Contains X11 KWindow implementation
 pub mod window;
 
-use super::KWindow;
-
-
-
-impl KWindow {
-    /// New new
-    pub fn new() -> KWindow {
-        todo!()
-    }
-}
 
 #[cfg(test)]
 mod test {
@@ -26,9 +21,10 @@ mod test {
 
     use std::ptr;
 
-    use super::bind::XEvent;
+    use super::event::XEvent;
 
     #[test]
+    #[ignore]
     fn waytrest() {
         unsafe {
             let display  = XOpenDisplay(ptr::null());
@@ -42,9 +38,8 @@ mod test {
 
             let window = XCreateSimpleWindow(display, XDefaultRootWindow(display), 100, 100, 200, 200, 4, 0, 0);
 
-            let event : *mut XEvent  = &mut XEvent { _type:0 };
+            let event : *mut XEvent  = &mut XEvent { _type: 0};
   
-
             XMapWindow(display, window);
 
             XSelectInput(display, window, KeyPressMask | ButtonPressMask | ExposureMask);

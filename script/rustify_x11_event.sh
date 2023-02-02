@@ -3,7 +3,7 @@
 # rustify_x11_event.sh
 #
 # DESCRIPTION
-# Generate Xlib.h _XEvent union into Rust format.
+# Generate Xlib.h XEvent union into Rust format.
 #
 # PARAMETERS
 # $1 : Path to Xlib.h
@@ -13,6 +13,10 @@
 #
 # NOTE
 # 
+#
+# REFERENCES
+# https://docs.rs/x11/latest/x11
+# https://superuser.com/questions/1001973/bash-find-string-index-position-of-substring
 #
 # COPYRIGHT
 # MIT
@@ -30,8 +34,11 @@ fi
 
 # Rust file header
 echo "// Generated with \"script/rustify_x11_event.sh\""
+echo "// NOTE: All struct and union members name start with \"_\" to prevent conflict with Rust reserved words."
+echo ""
 echo "use std::os::raw::{ c_int, c_long, c_uint, c_ulong, c_char, c_uchar, c_short, c_void };"
 echo ""
+
 
 echo "// Types definition (ref : https://docs.rs/x11/latest/x11)"
 echo "pub type Time = c_ulong;"
@@ -39,10 +46,13 @@ echo "pub type XID = c_ulong;"
 echo "pub type Atom = XID;"
 echo "pub type Colormap = XID;"
 echo "pub type Drawable = XID;"
+echo "pub type Window = XID;"
+echo "pub type Display = XID;"
 echo ""
 echo "/// Union 'data' of XClientMessageEvent struct."
 echo "#[repr(C)]"
-echo "pub union XClientMessageEvent_data {"
+echo "#[derive(Debug, Clone, Copy, PartialEq)]"
+echo "pub struct XClientMessageEvent_data {"
 echo "pub _b : [c_char; 20],"
 echo "pub _s : [c_short; 10],"
 echo "pub _l : [c_long; 5]"
@@ -91,14 +101,14 @@ echo_to_body_content() {
 	if [[ $2 != "" ]]; then
 		# Mutable pointer
 		if [[ "$2" == *"*"* ]]; then
-			v_name="\t_$(echo $2 | sed 's/*//g')"
+			v_name="\tpub _$(echo $2 | sed 's/*//g')"
 			body_content=$(echo "$body_content$v_name:*mut $1,\n")
 		
 		# Array
 		elif [[ "$2" == *"["* ]]; then
 			position=$(get_char_position "[" "$2")
 	
-			v_name="\t_${2:0:position}"
+			v_name="\tpub _${2:0:position}"
 			#v_size=$($(echo ${2:position:255} | sed 's/[//g') | sed 's/]//g')
 			v_size=${2:position:255}
 			v_size=$(echo $v_size | sed 's/\[//g')
@@ -108,7 +118,7 @@ echo_to_body_content() {
 		
 		# Variable
 		else
-			v_name="\t_$2"
+			v_name="\tpub _$2"
 			body_content=$(echo "$body_content$v_name:$1,\n")
 		fi
 	fi
@@ -157,7 +167,7 @@ parse_struct_body_content() {
 		
 	elif [[ "$line" == *"union {"* ]]; then
 		# XClientMessageEvent union
-		v_name="\t_data"
+		v_name="\tpub _data"
 		body_content=$(echo "$body_content$v_name:XClientMessageEvent_data,\n")
 
 		
@@ -175,6 +185,10 @@ parse_struct_body_content() {
 		
 	elif [[ "$line" == *"} data"* ]]; then
 		# Ignore union rest
+		:
+		
+	elif [[ "$line" == *"{"* ]]; then
+		# Ignore struct opening bracket
 		:
 	
 	elif [[ "$line" == *"Bool"* ]]; then
@@ -196,6 +210,9 @@ parse_struct_body_content() {
 	elif [[ "$line" == *"int"* ]]; then
 		write_struct_body_content "c_int" 2
 		
+	elif [[ "$line" == *"long"* ]]; then
+		write_struct_body_content "c_long" 2
+		
 	elif [[ "$line" == *"char"* ]]; then
 		write_struct_body_content "c_char" 2
 	
@@ -216,7 +233,10 @@ parse_struct_body_content() {
 		:
 	elif [[ "$line" == *"#endif"* ]]; then
 		# ignore define line
-		:	
+		:
+	elif [[ "$block_type" == *"union"* ]]; then
+		# write union lines
+		write_struct_body_content "$v1" 2
 	else
 		echo "Unsupported : $line"
 		exit 1
@@ -227,29 +247,27 @@ parse_struct_body_content() {
 # Read the Xlib.h file
 while read -r line
 do
-	#echo "$line"
-
 	# If we reached the end of xevent definition, exit succesfully
 	if [ $xevent_end == 1 ]; then
-		echo "Ending now"
 		exit 0
 	fi
 	
 	# Generate code only if at _XEVENT_ block
 	if [ $xevent_start == 1 ]; then
 		# End of struct block
-		if [[ "$line" == *"}"* && $struct_block == 1 ]]; then
+		if [[ "$line" == *"}"* && $struct_block == 1 && "$line" != *"} data;"* ]]; then
 			# End struct block
 			struct_block=0
 			
 			# Get struct name
 			struct_name=$(echo $line | awk '{print $2}')
 			struct_name=$(echo $struct_name | sed 's/;//g')
-			
+						
 			# Output struct in rust format
-			echo "pub struct $struct_name {"
+			echo "pub $block_type $struct_name {"
 			printf "$body_content" 
 			echo "}"
+			echo ""
 			
 			# Reset body_content
 			body_content=""
@@ -261,9 +279,24 @@ do
 		fi
 		
 		# Beginning of struct block
-		if [[ "$line" == *"typedef struct {"* ]]; then
+		if [[ "$line" == *"typedef struct"* && $struct_block == 0 ]]; then
 			struct_block=1
+			block_type="struct"
 			echo "#[repr(C)]"
+			echo "#[derive(Debug, Clone, Copy, PartialEq)]"
+			
+			
+		elif [[ "$line" == *"typedef union"* && $struct_block == 0 ]]; then
+			struct_block=1
+			block_type="union"
+			echo "#[repr(C)]"
+			echo "#[derive(Clone, Copy)]"
+		
+		# Type Alias
+		elif [[ "$line" == *"typedef "* ]]; then
+			alias_name=$(remove_var_junk $(echo $line | awk '{print $3}'))
+			alias_type=$(remove_var_junk $(echo $line | awk '{print $2}'))
+			echo "pub type $alias_name = $alias_type;"
 		fi
 		
 		

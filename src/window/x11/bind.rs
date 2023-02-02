@@ -4,7 +4,14 @@ use std::os::raw::{c_char, c_int, c_long, c_uint, c_ulong};
 pub enum X11display {}
 pub enum X11Window {}
 
-pub enum XEvent {}
+
+#[repr(C)]
+pub union XEvent {
+    pub _type : c_int,		/* must not be changed; first element */
+    pub _padd : [u64; 65535]
+}
+
+
 
 #[link(name = "X11")]
 extern {

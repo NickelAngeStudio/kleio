@@ -1,4 +1,6 @@
 /// Contains X11 contants definition
+#[allow(unused)]                    // Remove unused variable notification
+#[allow(non_upper_case_globals)]    // Imported C global aren't formatted according to convention.
 pub mod constant;
 
 /// Contains X11 C Bind
@@ -10,6 +12,7 @@ pub mod window;
 use super::KWindow;
 
 
+
 impl KWindow {
     /// New new
     pub fn new() -> KWindow {
@@ -19,8 +22,7 @@ impl KWindow {
 
 #[cfg(test)]
 mod test {
-    use crate::window::x11::constant::xevent_masks;
-    use crate::window::x11::bind::{XCreateSimpleWindow, XDefaultRootWindow, XMapWindow, XSelectInput, XNextEvent, XOpenDisplay};
+    use crate::window::x11::{bind::{XCreateSimpleWindow, XDefaultRootWindow, XMapWindow, XSelectInput, XNextEvent, XOpenDisplay}, constant::{KeyPressMask, ButtonPressMask, ExposureMask, EnterWindowMask, LeaveWindowMask}};
 
     use std::ptr;
 
@@ -40,15 +42,16 @@ mod test {
 
             let window = XCreateSimpleWindow(display, XDefaultRootWindow(display), 100, 100, 200, 200, 4, 0, 0);
 
-            let event : *mut XEvent = ptr::null_mut();
+            let event : *mut XEvent  = &mut XEvent { _type:0 };
+  
 
             XMapWindow(display, window);
 
-            XSelectInput(display, window, xevent_masks::KEY_PRESS_MASK | xevent_masks::BUTTON_PRESS_MASK | xevent_masks::EXPOSURE_MASK);
+            XSelectInput(display, window, KeyPressMask | ButtonPressMask | ExposureMask);
             
             loop {
                 XNextEvent(display, event);
-                //println!("ET={:?}", (*event).r#type);
+                println!("ET={:?}", (*event)._type);
             }
 
 

@@ -29,7 +29,7 @@ if [[ "$1" != *"X.h"* ]]; then
 fi
 
 # Rust file header
-echo "// Generated with \"script/rustify_x11_constant.sh\""
+echo "// Generated with \"script/rustify_x11_constants.sh\""
 echo "use std::os::raw::{ c_int, c_long };"
 echo ""
 

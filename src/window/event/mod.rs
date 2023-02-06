@@ -1,16 +1,8 @@
-/// # Re-export for Public API
-#[doc(inline)]
-pub use mouse::KEventMouse as KEventMouse;
-pub use window::KEventWindow as KEventWindow;
-pub use controller::KEventController as KEventController;
-pub use keyboard::KEventKeyboard as KEventKeyboard;
-pub use queue::KEventQueue as KEventQueue;
+use super::{KEventWindow, KEventKeyboard, KEventMouse, KEventController};
 
-
-
-// Kleio KEventQueue
+// Kleio KEventDispatcher and Receiver
 #[doc(hidden)]
-pub mod queue;
+pub mod dispatcher;
 
 // Kleio window events
 #[doc(hidden)]
@@ -28,9 +20,11 @@ pub mod mouse;
 #[doc(hidden)]
 pub mod controller;
 
-
 /// Union of possible events into an enumeration.
 pub enum KEvent {
+
+    /// No Event
+    None,
 
     /// Window events
     Window(KEventWindow),
@@ -44,4 +38,3 @@ pub enum KEvent {
     /// Controller events
     Controller(KEventController),
 }
-

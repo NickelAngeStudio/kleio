@@ -1,10 +1,8 @@
 use std::{ptr::{null_mut, null}, panic::catch_unwind};
 
-use crate::window::{linux::x11::{bind::{XDefaultRootWindow, XCreateSimpleWindow, XMapWindow, XSelectInput, XSync, XEventsQueued}, constant::{KeyPressMask, ButtonPressMask, ExposureMask}}, event::KEvent, self};
+use crate::window::{linux::x11::{bind::{XDefaultRootWindow, XCreateSimpleWindow, XMapWindow, XSelectInput, XSync, XEventsQueued}, constant::{KeyPressMask, ButtonPressMask, ExposureMask}}, event::KEvent, self, KWindowManager, KWindowManagerProvider};
 
 use self::{event::{ Display, Window, XEvent }, bind::{XOpenDisplay, XCloseDisplay, XNextEvent}};
-
-use super::KWindowLinux;
 
 /// Contains X11 contants definition
 #[allow(unused)]                    // Remove unused variable notification
@@ -20,8 +18,8 @@ pub mod event;
 pub mod bind;
 
 
-/// # X11 KWindow backend
-pub struct KWindowX11 {
+/// # X11 KWindowManager backend
+pub struct KWindowManagerX11 {
     /// Used to fetch events
     event : XEvent,
 
@@ -32,13 +30,19 @@ pub struct KWindowX11 {
     window : *mut Window,
 }
 
-impl KWindowX11 {
-    /// Create a new KWindowX11 window. Since it CAN fail, an option is returned if X11 server not available.
-    pub fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Option<KWindowX11> {
+impl KWindowManagerX11 {
+    pub fn get_display(&self) -> *mut Display {
+        self.display
+    }
+}
+
+impl KWindowManager for KWindowManagerX11 {
+    fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Result<Self, window::KWindowError> where Self: Sized {
         unsafe {
             // Try to call C function with error handling.
             let result = catch_unwind(|| {
                 let display = XOpenDisplay(std::ptr::null());
+                println!("Display={:?}", display);
 
                 if display == std::ptr::null_mut() {
                     // Display server connection failed
@@ -51,23 +55,23 @@ impl KWindowX11 {
                     XSelectInput(display, window, KeyPressMask | ButtonPressMask | ExposureMask);
 
 
-                    Some(KWindowX11 { event : XEvent { _type: 0}, display : display, window : window })
+                    Some(KWindowManagerX11 { event : XEvent { _type: 0}, display : display, window : window })
                 }
                 
 
             }); 
 
             match result {
-                Ok(window) => window,
-                Err(_) => None,
+                Ok(window) => match window {
+                    Some(window) => Ok(window),
+                    None => Err(window::KWindowError::NotSupported),
+                },
+                Err(_) => Err(window::KWindowError::NotSupported),
             }
         }
     }
 
-}
 
-
-impl KWindowLinux for KWindowX11 {
     fn poll_event(&mut self) -> KEvent {
         unsafe {
             if XEventsQueued(self.display, 0) > 0 {
@@ -83,9 +87,18 @@ impl KWindowLinux for KWindowX11 {
             }
         }
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn get_provider(&self) -> window::KWindowManagerProvider {
+        KWindowManagerProvider::X11
+    }
 }
 
-impl Drop for KWindowX11 {
+
+impl Drop for KWindowManagerX11 {
     /// KWindowX11 destructor. Will disconnect display server.
     fn drop(&mut self) {
         unsafe {

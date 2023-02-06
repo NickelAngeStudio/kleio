@@ -1,3 +1,5 @@
+use std::any::Any;
+
 /// # Re-export for Public API
 #[doc(inline)]
 pub use event::KEvent as KEvent;
@@ -46,6 +48,9 @@ pub mod wasm;
 /// Enumeration of possible [KWindow] errors.
 pub enum KWindowError {
 
+    /// Happens when a window manager is not supported.
+    NotSupported,
+
     /// Happens when no display server is found.
     NoDisplayServer,
 
@@ -60,6 +65,7 @@ pub enum KWindowError {
 /// # Manage a window frame in OS GUI.
 /// TODO: More doc
 pub struct KWindow {
+    
     window_manager : Box<dyn KWindowManager>,
 }
 
@@ -77,7 +83,21 @@ impl KWindow {
     /// a [x11](https://en.wikipedia.org/wiki/X_Window_System) window if not compatible with Wayland.
     #[cfg(all(not(target_family = "wasm"), target_os = "linux"))]
     pub fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Result<KWindow, KWindowError> {
-        todo!()
+
+        match linux::wayland::KWindowManagerWayland::new(pos_x, pos_y, width, height) {
+            Ok(wm) => {
+                Ok(KWindow{ window_manager: Box::new(wm) })
+            },
+            // Try to create X11 Window Manager
+            Err(_) => match linux::x11::KWindowManagerX11::new(pos_x, pos_y, width, height) {
+                Ok(wm) => {
+                    Ok(KWindow{ window_manager: Box::new(wm) })
+                },
+
+                // If failed, no display server is available.
+                Err(_) => Err(KWindowError::NoDisplayServer),
+            },
+        } 
     }
 
     #[cfg(all(not(target_family = "wasm"), target_os = "windows"))]
@@ -105,6 +125,10 @@ impl KWindow {
         todo!()
     }
 
+    pub fn get_window_manager(&self) -> &Box<dyn KWindowManager> {
+        &self.window_manager
+    }
+
     /// Create a [KWindow] from a [KWindowManager]. 
     /// 
     /// The [KWindow] will take ownership of the [KWindowManager].
@@ -124,6 +148,7 @@ impl KWindow {
 }
 
 /// Enumeration of possible [KWindowManager] provider.
+#[derive(PartialEq)]
 pub enum KWindowManagerProvider {
     /// Linux Wayland display server.
     Wayland,
@@ -154,14 +179,65 @@ pub trait KWindowManager {
     /// Returns [KWindowManager] created.
     fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Result<Self, KWindowError> where Self: Sized;
 
-    /// Return [KWindowManagerProvider] representing which software provides the window manager.
-    fn get_provider(&self) -> KWindowManagerProvider;
-
     /// Get an event from window manager as [KEvent].
     fn poll_event(&mut self) -> KEvent;
 
+    /// Get the [KWindowManagerProvider] id that manage the window.
+    fn get_provider(&self) -> KWindowManagerProvider;
+
+    /// Get self as [Any], allowing downcasting.
+    /// Implementation code should be as follow :
+    /// ```
+    /// fn as_any(&self) -> &dyn std::any::Any {
+    /// self
+    /// }
+    /// ```
+    fn as_any(&self) -> &dyn Any;
+
+    //fn as_any(&self) -> &dyn std::any::Any {
+    //    self
+    //}
+
 
 }
+
+
+
+#[cfg(test)]
+mod test {
+    
+    use super::{KWindow, linux::x11::KWindowManagerX11, KWindowManagerProvider};
+
+
+    #[test]
+    #[ignore]
+    fn kwindow_test() {
+        let window = KWindow::new(100, 100, 200, 200);
+
+        match window {
+            Ok(mut window) => {
+                if window.get_window_manager().get_provider() == KWindowManagerProvider::X11 {
+                    let w  = window.get_window_manager().as_ref().as_any();
+                    match w.downcast_ref::<KWindowManagerX11>() {
+                        Some(dc) => {
+                            println!("DC Worked! Proof, display={:?}", dc.get_display());
+                        },
+                        None => panic!("DC Failed!"),
+                    }
+                    //window as KWindowManagerX11;
+                }
+                loop {
+                    window.poll_event();
+                }
+            },
+            Err(_) => panic!("Error while creating window!"),
+        }
+
+    
+    }
+    
+}
+
 
 /*
 pub struct KWindowProperty {

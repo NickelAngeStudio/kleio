@@ -1,10 +1,9 @@
 use std::panic::catch_unwind;
 
-use crate::window::event::KEvent;
+use crate::window::{event::KEvent, KWindowManager, KWindowManagerProvider, KWindowError};
 
 use self::bind::wl_display_connect;
 
-use super::KWindowLinux;
 
 /// Waylind C function binds
 #[allow(unused)]                    // Remove unused variable notification
@@ -14,16 +13,16 @@ pub mod bind;
 
 
 /// # Wayland KWindow backend
-pub struct KWindowWayland {
+pub struct KWindowManagerWayland {
     
 
 
 }
 
 
-impl KWindowWayland {
-    pub fn new(posX:isize, posY:isize, width:usize, height:usize) -> Option<KWindowWayland> {
-
+impl KWindowManager for KWindowManagerWayland {
+    fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Result<Self, crate::window::KWindowError> where Self: Sized {
+        
         unsafe {
             // Try to call C function with error handling.
             let result = catch_unwind(|| {
@@ -32,24 +31,29 @@ impl KWindowWayland {
             match result {
                 Ok(display) => {
                     if display == std::ptr::null_mut() {
-                        None
+                        Err(KWindowError::NotSupported)
                     } else {
                         // TODO: Wayland implementation
                         todo!()
                     }
 
                 },
-                // C function crashed. Wayland not compatible.
-                Err(_) => None,
+                // C function crashed. Wayland not supported.
+                Err(_) => Err(KWindowError::NotSupported),
             }
         }
+
     }
-    
 
-}
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 
-impl KWindowLinux for KWindowWayland {
     fn poll_event(&mut self) -> KEvent {
         todo!()
+    }
+
+    fn get_provider(&self) -> KWindowManagerProvider {
+        KWindowManagerProvider::Wayland
     }
 }

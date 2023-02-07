@@ -1,12 +1,27 @@
 use super::KEvent;
 
-/// # Dispatch [KWindow](struct.KWindow.html) [KEvent] to multiple receiver. 
-/// TODO: More doc
+/// # Dispatch [KWindow](struct.KWindow.html) [KEvent] to multiple receiver.
+/// 
+/// This struct is automatically created for each [KWindow](struct.KWindow.html).
 pub struct KEventDispatcher {
 
 }
 
-/// # Receive [KEvent] from [KEventDispatcher] and handle them if needed. 
+impl KEventDispatcher {
+    pub(crate) fn new() -> KEventDispatcher {
+        KEventDispatcher{}
+    }
+
+    pub(crate) fn add_receiver() {
+        todo!()
+    }
+
+    pub(crate) fn remove_receiver() {
+        todo!()
+    }
+}
+
+/// # Receive [KEvent] from [KWindow](struct.KWindow.html) and handle them if needed. 
 /// TODO: More doc
 pub trait KEventReceiver {
 

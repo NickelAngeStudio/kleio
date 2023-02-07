@@ -1,6 +1,6 @@
 use std::panic::catch_unwind;
 
-use crate::window::{event::KEvent, KWindowManager, KWindowManagerProvider, KWindowError};
+use crate::window::{event::KEvent, KWindowManager, KWindowManagerId, KWindowError};
 
 use self::bind::wl_display_connect;
 
@@ -53,7 +53,7 @@ impl KWindowManager for KWindowManagerWayland {
         todo!()
     }
 
-    fn get_provider(&self) -> KWindowManagerProvider {
-        KWindowManagerProvider::Wayland
+    fn get_id(&self) -> u8 {
+        KWindowManagerId::WAYLAND
     }
 }

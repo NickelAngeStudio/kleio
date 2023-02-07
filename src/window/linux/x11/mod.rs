@@ -1,6 +1,6 @@
-use std::{ptr::{null_mut, null}, panic::catch_unwind};
+use std::{panic::catch_unwind};
 
-use crate::window::{linux::x11::{bind::{XDefaultRootWindow, XCreateSimpleWindow, XMapWindow, XSelectInput, XSync, XEventsQueued}, constant::{KeyPressMask, ButtonPressMask, ExposureMask}}, event::KEvent, self, KWindowManager, KWindowManagerProvider};
+use crate::window::{linux::x11::{bind::{XDefaultRootWindow, XCreateSimpleWindow, XMapWindow, XSelectInput, XSync, XEventsQueued}, constant::{KeyPressMask, ButtonPressMask, ExposureMask}}, event::KEvent, self, KWindowManager, KWindowManagerId};
 
 use self::{event::{ Display, Window, XEvent }, bind::{XOpenDisplay, XCloseDisplay, XNextEvent}};
 
@@ -92,8 +92,8 @@ impl KWindowManager for KWindowManagerX11 {
         self
     }
 
-    fn get_provider(&self) -> window::KWindowManagerProvider {
-        KWindowManagerProvider::X11
+    fn get_id(&self) -> u8 {
+        KWindowManagerId::X11
     }
 }
 

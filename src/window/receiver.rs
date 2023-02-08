@@ -1,25 +1,26 @@
+use crate::window::{ KWindow};
+
 use super::KEvent;
 
-/// # Dispatch [KWindow](struct.KWindow.html) [KEvent] to multiple receiver.
-/// 
-/// This struct is automatically created for each [KWindow](struct.KWindow.html).
-pub struct KEventDispatcher {
 
-}
-
-impl KEventDispatcher {
-    pub(crate) fn new() -> KEventDispatcher {
-        KEventDispatcher{}
-    }
-
-    pub(crate) fn add_receiver() {
+impl KWindow {
+    pub fn add_event_receiver(&self) {
         todo!()
     }
 
-    pub(crate) fn remove_receiver() {
+    pub fn remove_event_receiver() {
+        todo!()
+    }
+
+    /// Dispatch [KEvent] to [KEventReceiver].
+    /// 
+    /// This function should be called at the beginning of each main loop. 
+    /// TODO:Example
+    pub fn dispatch_events(&mut self) -> KEvent {
         todo!()
     }
 }
+
 
 /// # Receive [KEvent] from [KWindow](struct.KWindow.html) and handle them if needed. 
 /// TODO: More doc
@@ -30,4 +31,13 @@ pub trait KEventReceiver {
     /// Return True if the [KEvent] has been handled, which will prevent other receiver from handling it.
     /// Return False if the [KEvent] wasn't handled, giving it to the next receiver.
     fn receive(&self, event : KEvent) -> bool;
+}
+
+/// [KEventDispatcher] unit tests.
+#[cfg(test)]
+mod unit_tests {
+    #[test]
+    #[ignore]
+    fn kwindow_test() {
+    }
 }

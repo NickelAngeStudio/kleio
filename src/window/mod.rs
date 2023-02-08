@@ -1,23 +1,36 @@
 use std::any::Any;
-use self::event::dispatcher::KEventDispatcher;
 
 /// # Re-export for Public API
 #[doc(inline)]
 pub use renderer::KWindowRenderer as KWindowRenderer;
+pub use manager::KWindowManager as KWindowManager;
+pub use manager::KWindowManagerId as KWindowManagerId;
 pub use event::KEvent as KEvent;
 pub use event::mouse::KEventMouse as KEventMouse;
 pub use event::window::KEventWindow as KEventWindow;
 pub use event::controller::KEventController as KEventController;
 pub use event::keyboard::KEventKeyboard as KEventKeyboard;
-pub use event::dispatcher::KEventReceiver as KEventReceiver;
+pub use receiver::KEventReceiver as KEventReceiver;
 
 /// [KWindow] event definition.
 #[doc(hidden)]
 pub mod event;
 
+/// [KWindowManager] definition.
+#[doc(hidden)]
+pub mod manager;
+
 /// [KWindow] renderer abstraction.
 #[doc(hidden)]
 pub mod renderer;
+
+/// [KWindow] receiver abstraction and dispatcher implementation.
+#[doc(hidden)]
+pub mod receiver;
+
+/// [KWindow] properties implementation.
+#[doc(hidden)]
+pub mod property;
 
 /// Linux implementation of KWindow
 #[cfg(all(not(target_family = "wasm"), target_os = "linux"))]
@@ -66,6 +79,16 @@ pub enum KWindowError {
 
 }
 
+impl std::fmt::Debug for KWindowError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::NotSupported => write!(f, "NotSupported"),
+            Self::NoDisplayServer => write!(f, "NoDisplayServer"),
+            Self::FromWindowManagerError => write!(f, "FromWindowManagerError"),
+        }
+    }
+}
+
 
 /// # Create and manage a window frame in OS GUI.
 /// 
@@ -73,9 +96,6 @@ pub enum KWindowError {
 /// 
 /// TODO: More doc about OS, dispatch, from and window manager and Examples
 pub struct KWindow {
-    
-    /// Dispatcher of KEvent to receivers.
-    dispatcher : KEventDispatcher,
 
     /// Window manager that manage this [KWindow].
     window_manager : Box<dyn KWindowManager>,
@@ -98,12 +118,12 @@ impl KWindow {
 
         match linux::wayland::KWindowManagerWayland::new(pos_x, pos_y, width, height) {
             Ok(wm) => {
-                Ok(KWindow{ dispatcher : KEventDispatcher::new(), window_manager: Box::new(wm) })
+                Ok(KWindow{ window_manager : Box::new(wm)})
             },
             // Try to create X11 Window Manager
             Err(_) => match linux::x11::KWindowManagerX11::new(pos_x, pos_y, width, height) {
                 Ok(wm) => {
-                    Ok(KWindow{ dispatcher : KEventDispatcher::new(), window_manager: Box::new(wm) })
+                    Ok(KWindow{ window_manager: Box::new(wm) })
                 },
 
                 // If failed, no display server is available.
@@ -137,6 +157,15 @@ impl KWindow {
         todo!()
     }
 
+    /// Create a [KWindow] from a [KWindowManager]. 
+    /// 
+    /// The [KWindow] will take ownership of the [KWindowManager].
+    /// 
+    /// Used when porting [KWindow] to another platform.
+    pub fn from(window_manager : Box<dyn KWindowManager>) -> KWindow {
+        KWindow { window_manager }
+    }
+
     /// Returns the [KWindowManagerId] of the [KWindowManager].
     /// 
     /// Used by [KWindowRenderer] to target the correct display server.
@@ -147,164 +176,17 @@ impl KWindow {
     /// Used to downcast [KWindowManager] trait to target the correct display server for [KWindowRenderer].
     /// 
     /// Returns some reference to the inner value if it is of type T, or None if it isn’t.
+    /// 
+    /// # Example(s)
+    /// Downcasting to KWindowManagerX11 : 
+    /// ```no_run
+    /// match window.downcast_window_manager::<KWindowManagerX11>() {
+    ///     Some(wmx11 : &KWindowManagerX11) => todo!(),
+    ///     None => todo!(),
+    /// }
+    /// ```
     pub fn downcast_window_manager<T: Any>(&self) -> Option<&T> {
         self.window_manager.as_any().downcast_ref::<T>()
     }
-
-    /// Create a [KWindow] from a [KWindowManager]. 
-    /// 
-    /// The [KWindow] will take ownership of the [KWindowManager].
-    /// 
-    /// Used when porting [KWindow] to another platform.
-    pub fn from(window_manager : Box<dyn KWindowManager>) -> KWindow {
-        KWindow { dispatcher : KEventDispatcher::new(), window_manager }
-    }
-
-
-
-    /// Dispatch [KEvent] to [KEventReceiver].
-    /// 
-    /// This function should be called at the beginning of each main loop. 
-    /// TODO:Example
-    pub fn dispatch_events(&mut self) -> KEvent {
-        todo!()
-    }
-
-
-
-
 }
 
-/// Enumeration of possible [KWindowManager] provider id.
-/// 
-/// Since [KWindowManagerId] are u8, user can use his own value > 6
-/// when porting to another platform.
-#[allow(non_snake_case)]
-pub mod KWindowManagerId {
-    /// Linux Wayland display server.
-    pub const WAYLAND : u8 = 1;
-
-    /// Linux X11 display server.
-    pub const X11 : u8 = 2;
-
-    /// Windows graphical user interface.
-    pub const SHELL : u8 = 3;
-
-    /// Android graphical user interface.
-    pub const ANDROID : u8 = 4;
-
-    /// MacOS graphical user interface
-    pub const MACOS : u8 = 5;
-
-    /// IOS graphical user interface
-    pub const IOS : u8 = 6;
-}
-
-/// # Abstraction of window manager that supplies window frame.
-pub trait KWindowManager {
-    /// Create a new instance of [KWindowManager] and open the window frame.
-    /// 
-    /// Returns [KWindowManager] created.
-    fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Result<Self, KWindowError> where Self: Sized;
-
-    /// Get an event from window manager as [KEvent].
-    fn poll_event(&mut self) -> KEvent;
-
-    /// Get the [KWindowManagerId] that manage the window.
-    fn get_id(&self) -> u8;
-
-    /// Get self as [Any], allowing downcasting.
-    /// 
-    /// Implementation code should be as follow :
-    /// ```no_run
-    /// fn as_any(&self) -> &dyn Any {
-    ///     self
-    /// }
-    /// ```
-    /// 
-    /// # Example(s)
-    /// Downcasting to KWindowManagerX11
-    /// ```no_run
-    /// match window.get_window_manager().as_any().downcast_ref::<KWindowManagerX11>() {
-    /// Some(dc) => {
-    ///    println!("DC Worked! Proof, display={:?}", dc.get_display());
-    ///     },
-    ///     None => panic!("DC Failed!"),
-    /// }
-    /// ```
-    fn as_any(&self) -> &dyn Any;
-}
-
-
-#[cfg(test)]
-mod test {
-    
-    use super::{KWindow, linux::x11::KWindowManagerX11, KWindowManagerId};
-
-
-    #[test]
-    #[ignore]
-    fn kwindow_test() {
-        let window = KWindow::new(100, 100, 200, 200);
-
-        match window {
-            Ok(mut window) => {
-                if window.get_window_manager().get_id() == KWindowManagerId::X11 {
-                    match window.get_window_manager().as_any().downcast_ref::<KWindowManagerX11>() {
-                        Some(dc) => {
-                            
-                            println!("DC Worked! Proof, display={:?}", dc.get_display());
-                        },
-                        None => panic!("DC Failed!"),
-                    }
-                }
-                loop {
-                    //window.poll_event();
-                }
-            },
-            Err(_) => panic!("Error while creating window!"),
-        }
-
-    
-    }
-    
-}
-
-
-/*
-pub struct KWindowProperty {
-
-    // Windows handle id
-    handle : usize,
-
-    // Window title
-    title : String,
-
-    // Window position x,y
-    position : (usize, usize),
-
-    // Window size W, H
-    size : (usize, usize),
-
-    // Fullscreen flag
-    fullscreen : bool,
-
-    // Minimized flag
-    minimized : bool,
-
-    // Maximized flag
-    maximized : bool,
-
-    // Shown flag
-    shown : bool,
-
-    // Hidden flag
-    hidden : bool,
-
-    // Borderless flag
-    borderless : bool,
-
-    // Resizable flag
-    resizable : bool
-}
-*/

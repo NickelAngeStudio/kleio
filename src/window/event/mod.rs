@@ -1,9 +1,5 @@
 use super::{KEventWindow, KEventKeyboard, KEventMouse, KEventController};
 
-// Kleio KEventDispatcher and Receiver
-#[doc(hidden)]
-pub mod dispatcher;
-
 // Kleio window events
 #[doc(hidden)]
 pub mod window;

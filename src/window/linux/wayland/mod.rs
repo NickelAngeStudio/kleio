@@ -14,8 +14,8 @@ pub mod bind;
 
 /// # Wayland KWindow backend
 pub struct KWindowManagerWayland {
-    
 
+    
 
 }
 
@@ -55,5 +55,13 @@ impl KWindowManager for KWindowManagerWayland {
 
     fn get_id(&self) -> u8 {
         KWindowManagerId::WAYLAND
+    }
+
+    fn get_event_count(&self) -> usize {
+        todo!()
+    }
+
+    fn sync_event(&self) {
+        todo!()
     }
 }

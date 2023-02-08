@@ -74,13 +74,17 @@ impl KWindowManager for KWindowManagerX11 {
 
     fn poll_event(&mut self) -> KEvent {
         unsafe {
+            XNextEvent(self.display, &mut self.event);
+
+
+            
             if XEventsQueued(self.display, 0) > 0 {
-                XNextEvent(self.display, &mut self.event);
+                
 
                 KEvent::None
             } else {
                 // Perform an XSync when no event queued
-                XSync(self.display, false);
+                
 
                 // Return KEvent::None
                 KEvent::None
@@ -94,6 +98,19 @@ impl KWindowManager for KWindowManagerX11 {
 
     fn get_id(&self) -> u8 {
         KWindowManagerId::X11
+    }
+
+    fn get_event_count(&self) -> usize {
+        unsafe {
+            XEventsQueued(self.display, 0).try_into().unwrap()
+        }   
+    }
+
+    fn sync_event(&self) {
+        unsafe {
+            // The XSync() function flushes the output buffer and then waits until all requests have been received and processed by the X server.
+            XSync(self.display, false);
+        }
     }
 }
 

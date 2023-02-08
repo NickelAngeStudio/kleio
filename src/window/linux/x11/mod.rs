@@ -81,13 +81,13 @@ impl KWindowManager for KWindowManagerX11 {
             if XEventsQueued(self.display, 0) > 0 {
                 
 
-                KEvent::None
+                KEvent::Unknown
             } else {
                 // Perform an XSync when no event queued
                 
 
                 // Return KEvent::None
-                KEvent::None
+                KEvent::Unknown
             }
         }
     }

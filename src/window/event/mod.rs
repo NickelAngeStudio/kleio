@@ -19,8 +19,8 @@ pub mod controller;
 /// Union of possible events into an enumeration.
 pub enum KEvent {
 
-    /// No Event
-    None,
+    /// Unknown Event
+    Unknown,
 
     /// Window events
     Window(KEventWindow),

@@ -57,8 +57,7 @@ impl<'a> KJournalListenerList<'a> {
     /// 
     /// Returns [OK(usize)][Ok] with index of new listener added.
     /// 
-    /// # Error(s)
-    /// Returns `Err(`[KJournalListenerListError::ListenerAlreadyExists]`)` if listener is already in list.
+    
     pub fn add_listener(&mut self, listener : &'a (dyn KJournalListener + 'a)) -> Result<usize, KJournalListenerListError> {
         
         match self.get_listener_index(listener) {

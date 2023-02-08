@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::rc::Rc;
 
 /// # Re-export for Public API
 #[doc(inline)]
@@ -75,6 +76,14 @@ pub enum KWindowError {
     /// Happens when an error occurred while creating a [KWindow] using KWindow::from().
     FromWindowManagerError,
 
+    /// Happens when trying to add the same [KEventReceiver] twice to a [KWindow].
+    ReceiverAlreadyExists,
+
+    /// Happens when trying to remove a  [KEventReceiver] not added to a [KWindow].
+    ReceiverNotFound,
+
+    /// Happens when trying to dispatch events when no [KEventReceiver] were added.
+    DispatchNoReceiver,
 
 
 }
@@ -82,9 +91,7 @@ pub enum KWindowError {
 impl std::fmt::Debug for KWindowError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::NotSupported => write!(f, "NotSupported"),
-            Self::NoDisplayServer => write!(f, "NoDisplayServer"),
-            Self::FromWindowManagerError => write!(f, "FromWindowManagerError"),
+            _ => write!(f, "KWindowError[{:?}]", self),
         }
     }
 }
@@ -96,11 +103,14 @@ impl std::fmt::Debug for KWindowError {
 /// 
 /// TODO: More doc about OS, dispatch, from and window manager and Examples
 pub struct KWindow {
+    /// List of receivers.
+    receivers : Vec<Rc<dyn KEventReceiver>>,
 
     /// Window manager that manage this [KWindow].
     window_manager : Box<dyn KWindowManager>,
 }
 
+/// Implementation of [KWindow] [KEventReceiver] handling.
 impl KWindow {
     /// Create a new [KWindow] using position and size.
     /// 
@@ -118,12 +128,12 @@ impl KWindow {
 
         match linux::wayland::KWindowManagerWayland::new(pos_x, pos_y, width, height) {
             Ok(wm) => {
-                Ok(KWindow{ window_manager : Box::new(wm)})
+                Ok(KWindow{ receivers : Vec::new(), window_manager : Box::new(wm)})
             },
             // Try to create X11 Window Manager
             Err(_) => match linux::x11::KWindowManagerX11::new(pos_x, pos_y, width, height) {
                 Ok(wm) => {
-                    Ok(KWindow{ window_manager: Box::new(wm) })
+                    Ok(KWindow{ receivers : Vec::new(), window_manager: Box::new(wm) })
                 },
 
                 // If failed, no display server is available.
@@ -163,7 +173,7 @@ impl KWindow {
     /// 
     /// Used when porting [KWindow] to another platform.
     pub fn from(window_manager : Box<dyn KWindowManager>) -> KWindow {
-        KWindow { window_manager }
+        KWindow { receivers : Vec::new(),  window_manager }
     }
 
     /// Returns the [KWindowManagerId] of the [KWindowManager].

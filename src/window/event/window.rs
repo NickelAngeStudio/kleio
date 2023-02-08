@@ -10,14 +10,14 @@ pub enum KEventWindow {
     /// Happens when KWindow is exposed.
     Exposed(),
 
-    /// Happens when KWindow is moved. Provides x and y as new position.
-    Moved(usize, usize),
+    /// Happens when KWindow is moved. Provides (x,y) of new position.
+    Moved((isize, isize)),
 
-    /// Happens when KWindow is Resized. Provides height and width of new size.
-    Resized(usize, usize),
+    /// Happens when KWindow is Resized. Provides (height, width) of new size.
+    Resized((usize, usize)),
 
-    /// Happens when KWindow size changed without user input. Provides height and width of new size.
-    SizeChanged(usize, usize),
+    /// Happens when KWindow size changed without user input. Provides (height, width) of new size.
+    SizeChanged((usize, usize)),
 
     /// Happens when KWindow is minimized.
     Minimized(),

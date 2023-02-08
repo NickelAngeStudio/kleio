@@ -46,7 +46,21 @@ impl KWindow {
     /// 
     /// Returns the count of [KEvent] dispatched.
     /// 
-    /// TODO:Example
+    /// # Example(s)
+    /// Dispatching at each loop call in Main loop
+    /// ```
+    /// // Create a KWindow
+    /// let mut w = KWindow::new(100,100,100,100);
+    /// 
+    /// ... add receivers to KWindow ...
+    /// 
+    /// loop {
+    ///     match w.dispatch_events(){
+    ///         Ok(event_count) => println!("{} events dispatched!", event_count),
+    ///         Err(_) => println!("No receivers added for dispatch!"),
+    ///     }
+    /// }
+    /// ```
     /// 
     /// # Error(s)
     /// Returns `Err(`[KWindowError::DispatchNoReceiver]`)` if no receiver added to handle events.

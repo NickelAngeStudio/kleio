@@ -12,6 +12,10 @@ pub use event::window::KEventWindow as KEventWindow;
 pub use event::controller::KEventController as KEventController;
 pub use event::keyboard::KEventKeyboard as KEventKeyboard;
 pub use receiver::KEventReceiver as KEventReceiver;
+pub use property::KWINDOW_MIN_WIDTH as KWINDOW_MIN_WIDTH;
+pub use property::KWINDOW_MIN_HEIGHT as KWINDOW_MIN_HEIGHT;
+pub use property::KWINDOW_MAX_WIDTH as KWINDOW_MAX_WIDTH;
+pub use property::KWINDOW_MAX_HEIGHT as KWINDOW_MAX_HEIGHT;
 
 /// [KWindow] event definition.
 #[doc(hidden)]
@@ -85,13 +89,16 @@ pub enum KWindowError {
     /// Happens when trying to dispatch events when no [KEventReceiver] were added.
     DispatchNoReceiver,
 
+    /// Happens when trying to resize a [KWindow] outside of allowed boundaries.
+    WindowSizeError,
+
 
 }
 
 impl std::fmt::Debug for KWindowError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            _ => write!(f, "KWindowError[{:?}]", self),
+            _ => write!(f, "KWindowError"),
         }
     }
 }
@@ -120,11 +127,24 @@ impl KWindow {
     /// # Error(s)
     /// Returns [KWindowError::NoDisplayServer] if no display server found on Linux.
     /// 
+    /// Returns [KWindowError::WindowSizeError] if width and/or height not within allowed boundaries.
+    /// 
     /// # Note(s)
     /// On Linux distribution, this will try to create a [Wayland](https://en.wikipedia.org/wiki/Wayland_(protocol)) window first then
     /// a [x11](https://en.wikipedia.org/wiki/X_Window_System) window if not compatible with Wayland.
     #[cfg(all(not(target_family = "wasm"), target_os = "linux"))]
     pub fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Result<KWindow, KWindowError> {
+
+        // Make sure width is within boundaries.
+        if width < KWINDOW_MIN_WIDTH || width > KWINDOW_MAX_WIDTH {
+            return Err(KWindowError::WindowSizeError);
+        }
+
+        // Make sure height is within boundaries.
+        if height < KWINDOW_MIN_HEIGHT || height > KWINDOW_MAX_HEIGHT {
+            return Err(KWindowError::WindowSizeError);
+        }
+
 
         match linux::wayland::KWindowManagerWayland::new(pos_x, pos_y, width, height) {
             Ok(wm) => {

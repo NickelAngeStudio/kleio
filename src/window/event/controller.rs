@@ -20,3 +20,15 @@ pub enum KEventController {
     Axis(u8, u8, i16)
 
 }
+
+impl std::fmt::Debug for KEventController {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Connected(arg0) => f.debug_tuple("Connected").field(arg0).finish(),
+            Self::Disconnected(arg0) => f.debug_tuple("Disconnected").field(arg0).finish(),
+            Self::ButtonDown(arg0, arg1) => f.debug_tuple("ButtonDown").field(arg0).field(arg1).finish(),
+            Self::ButtonUp(arg0, arg1) => f.debug_tuple("ButtonUp").field(arg0).field(arg1).finish(),
+            Self::Axis(arg0, arg1, arg2) => f.debug_tuple("Axis").field(arg0).field(arg1).field(arg2).finish(),
+        }
+    }
+}

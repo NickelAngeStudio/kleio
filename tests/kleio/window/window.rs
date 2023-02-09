@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc, borrow::BorrowMut};
+use std::{cell::RefCell, rc::Rc};
 
 use olympus_kleio::window::{KWindowManager, KEvent, KWindow, KEventReceiver, KWindowError, KEventController, KEventKeyboard, KEventMouse, KEventWindow};
 
@@ -35,7 +35,7 @@ pub const EVENT_COUNT:usize = 25;
 /// V1 | KWindow::from() create KWindow without error.
 fn kwindow_from() {
     // V1 | KWindow::from() create KWindow without error.
-    KWindow::from(Box::new(assert_ok!(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT))));
+    KWindow::from(Box::new(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT)));
 }
 
 #[test]
@@ -45,7 +45,7 @@ fn kwindow_from() {
 /// V1 | KWindow::get_window_manager_id() gives KWINDOW_MANAGER_HOLLOW_ID as ID.
 fn kwindow_get_window_manager_id() {
 
-    let w =  KWindow::from(Box::new(assert_ok!(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT))));
+    let w =  KWindow::from(Box::new(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT)));
 
     // V1 | KWindow::get_window_manager_id() gives KWINDOW_MANAGER_HOLLOW_ID as ID.
     assert!(w.get_window_manager_id() == KWINDOW_MANAGER_HOLLOW_ID, "KWindowManager id error!");
@@ -59,7 +59,7 @@ fn kwindow_get_window_manager_id() {
 /// V2 | KWindowManagerHollow::get_true() works.
 fn kwindow_downcast_window_manager() {
 
-    let w =  KWindow::from(Box::new(assert_ok!(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT))));
+    let w =  KWindow::from(Box::new(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT)));
 
 
     // V1 | KWindow::downcast_window_manager() correctly downcast to KWindowManagerHollow.
@@ -81,10 +81,10 @@ fn kwindow_downcast_window_manager() {
 /// V2 | Adding the same receiver via KWindow::add_event_receiver() should result in KWindowError::ReceiverAlreadyExists.
 fn kwindow_add_event_receiver() {
 
-    let mut w =  KWindow::from(Box::new(assert_ok!(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT))));
+    let mut w =  KWindow::from(Box::new(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT)));
 
     // V1 | KWindow::add_event_receiver() correctly add receiver to KWindow.
-    let rc1 = Rc::new(KEventReceiverControl::new(true, true, true, true));
+    let rc1 = Rc::new(RefCell::new(KEventReceiverControl::new(true, true, true, true)));
     assert_ok!(w.add_event_receiver(rc1.clone()), 0);
 
     // V2 | Adding the same receiver via KWindow::add_event_receiver() should result in KWindowError::ReceiverAlreadyExists.
@@ -100,8 +100,8 @@ fn kwindow_add_event_receiver() {
 /// V3 | KWindow::remove_event_receiver() should return Ok(0).
 fn kwindow_remove_event_receiver() {
 
-    let mut w =  KWindow::from(Box::new(assert_ok!(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT))));
-    let rc1 = Rc::new(KEventReceiverControl::new(true, true, true, true));
+    let mut w =  KWindow::from(Box::new(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT)));
+    let rc1 = Rc::new(RefCell::new(KEventReceiverControl::new(true, true, true, true)));
 
     // V1 | KWindow::remove_event_receiver() should return KWindowError::ReceiverNotFound since receiver was not added.
     assert_err!(w.remove_event_receiver(rc1.clone()), KWindowError::ReceiverNotFound);
@@ -126,7 +126,7 @@ fn kwindow_remove_event_receiver() {
 /// V5 | KWindow::dispatch_events() should return Ok(0).
 /// V6 | KWindow::remove_event_receiver() for each receiver should return Ok(index).
 fn kwindow_dispatch_events() {
-    let mut w = KWindow::from(Box::new(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT).unwrap()));
+    let mut w = KWindow::from(Box::new(KWindowManagerControl::new(POSX,POSY,WIDTH,HEIGHT)));
 
     // V1 | KWindow::dispatch_events() should return KWindowError::DispatchNoReceiver since no receivers added.
     match w.dispatch_events() {
@@ -138,16 +138,15 @@ fn kwindow_dispatch_events() {
     }
 
     // V2 | Add 6 different receiver with different handling configuration. 
-    let rc1 = Rc::new(KEventReceiverControl::new(true, true, true, true));
-    let rc2 = Rc::new(KEventReceiverControl::new(true, false, false, false));
-    let rc3 = Rc::new(KEventReceiverControl::new(false, true, false, false));
-    let rc4 = Rc::new(KEventReceiverControl::new(false, false, true, false));
-    let rc5 = Rc::new(KEventReceiverControl::new(false, false, false, true));
+    let rc1 = Rc::new(RefCell::new(KEventReceiverControl::new(true, true, true, true)));
+    let rc2 = Rc::new(RefCell::new(KEventReceiverControl::new(true, false, false, false)));
+    let rc3 = Rc::new(RefCell::new(KEventReceiverControl::new(false, true, false, false)));
+    let rc4 = Rc::new(RefCell::new(KEventReceiverControl::new(false, false, true, false)));
+    let rc5 = Rc::new(RefCell::new(KEventReceiverControl::new(false, false, false, true)));
     
-    let mut rc6 = KEventReceiverControl::new(false, true, true, true);
-    rc6.set_enabled(false);    // Disable rc6.
-    
-    let rc6 = Rc::new(rc6);
+    let rc6 = Rc::new(RefCell::new(KEventReceiverControl::new(false, true, true, true)));
+    rc6.borrow_mut().set_enabled(false);    // Disable rc6.
+
 
     assert_ok!(w.add_event_receiver(rc1.clone()), 0);
     assert_ok!(w.add_event_receiver(rc2.clone()), 1);
@@ -160,24 +159,24 @@ fn kwindow_dispatch_events() {
     assert_ok!(w.dispatch_events(), EVENT_COUNT);
 
     // V4 | Compare different receiver notification count with control.
-    assert_eq!(rc1.get_notification_count(), 0, "RC1 notification count should be 0!");
-    assert_eq!(rc2.get_notification_count(), EVENT_COUNT - 11, "RC2 notification count should be {}!", EVENT_COUNT - 11);
-    assert_eq!(rc3.get_notification_count(), EVENT_COUNT - 9, "RC3 notification count should be {}!", EVENT_COUNT - 9);
-    assert_eq!(rc4.get_notification_count(), EVENT_COUNT - 5, "RC4 notification count should be {}!", EVENT_COUNT - 5);
-    assert_eq!(rc5.get_notification_count(), EVENT_COUNT, "RC5 notification count should be {}!", EVENT_COUNT);
-    assert_eq!(rc6.get_notification_count(), 0, "RC6 notification count should be 0!");
+    assert_eq!(rc1.borrow().get_notification_count(), 0, "RC1 notification count should be 0!");
+    assert_eq!(rc2.borrow().get_notification_count(), EVENT_COUNT - 11, "RC2 notification count should be {}!", EVENT_COUNT - 11);
+    assert_eq!(rc3.borrow().get_notification_count(), EVENT_COUNT - 9, "RC3 notification count should be {}!", EVENT_COUNT - 9);
+    assert_eq!(rc4.borrow().get_notification_count(), EVENT_COUNT - 5, "RC4 notification count should be {}!", EVENT_COUNT - 5);
+    assert_eq!(rc5.borrow().get_notification_count(), EVENT_COUNT, "RC5 notification count should be {}!", EVENT_COUNT);
+    assert_eq!(rc6.borrow().get_notification_count(), 0, "RC6 notification count should be 0!");
 
     // V5 | KWindow::dispatch_events() should return Ok(0).
     assert_ok!(w.dispatch_events(), 0);
 
 
     // V6 | KWindow::remove_event_receiver() for each receiver should return Ok(index).
-    assert_ok!(w.remove_event_receiver(rc6.clone()), 5);
-    assert_ok!(w.remove_event_receiver(rc5.clone()), 4);
-    assert_ok!(w.remove_event_receiver(rc4.clone()), 3);
-    assert_ok!(w.remove_event_receiver(rc3.clone()), 2);
-    assert_ok!(w.remove_event_receiver(rc2.clone()), 1);
-    assert_ok!(w.remove_event_receiver(rc1.clone()), 0);
+    assert_ok!(w.remove_event_receiver(rc6), 5);
+    assert_ok!(w.remove_event_receiver(rc5), 4);
+    assert_ok!(w.remove_event_receiver(rc4), 3);
+    assert_ok!(w.remove_event_receiver(rc3), 2);
+    assert_ok!(w.remove_event_receiver(rc2), 1);
+    assert_ok!(w.remove_event_receiver(rc1), 0);
 }
 
 
@@ -201,7 +200,7 @@ impl KWindowManagerControl {
 }
 
 impl KWindowManager for KWindowManagerControl {
-    fn new(_pos_x:isize, _pos_y:isize, _width:usize, _height:usize) -> Result<Self, olympus_kleio::window::KWindowError> where Self: Sized {
+    fn new(_pos_x:isize, _pos_y:isize, _width:usize, _height:usize) -> Self where Self: Sized {
         //Create events in self.events up to EVENT_COUNT
         let mut events : Vec<KEvent> = Vec::new();
 
@@ -238,7 +237,7 @@ impl KWindowManager for KWindowManagerControl {
         events.push(KEvent::Window(KEventWindow::Blur()));
         events.push(KEvent::Window(KEventWindow::Close()));
 
-        Ok(KWindowManagerControl { events })
+        KWindowManagerControl { events }
     }
 
     fn get_event_count(&self) -> usize {
@@ -259,6 +258,58 @@ impl KWindowManager for KWindowManagerControl {
 
     fn as_any(&self) -> &dyn std::any::Any {
         self
+    }
+
+    fn set_title(&self, title : &str) {
+        todo!()
+    }
+
+    fn get_title(&self) -> &str {
+        todo!()
+    }
+
+    fn set_size(&self, dimension : (usize, usize)) {
+        todo!()
+    }
+
+    fn get_size(&self) -> (usize, usize) {
+        todo!()
+    }
+
+    fn set_fullscreen(&self, fullscreen : bool) {
+        todo!()
+    }
+
+    fn is_fullscreen(&self) -> bool {
+        todo!()
+    }
+
+    fn set_minimized(&self, minimized : bool) {
+        todo!()
+    }
+
+    fn is_minimized(&self) -> bool {
+        todo!()
+    }
+
+    fn set_maximized(&self, maximized : bool) {
+        todo!()
+    }
+
+    fn is_maximized(&self) -> bool {
+        todo!()
+    }
+
+    fn restore(&self) {
+        todo!()
+    }
+
+    fn show_cursor(&self) {
+        todo!()
+    }
+
+    fn hide_cursor(&self) {
+        todo!()
     }
 }
 
@@ -283,7 +334,7 @@ struct KEventReceiverControl {
     handle_controller : bool,
 
     // Was listener notified.
-    notification_count: Rc<RefCell<usize>>,
+    notification_count: usize,
 }
 
 impl KEventReceiverControl {
@@ -291,13 +342,12 @@ impl KEventReceiverControl {
     /// 
     /// Returns new KEventReceiverHollow created.
     pub fn new(handle_window : bool, handle_keyboard : bool, handle_mouse : bool, handle_controller : bool) -> KEventReceiverControl {
-        KEventReceiverControl { enabled: true, handle_window, handle_keyboard, handle_mouse, handle_controller, notification_count : Rc::new(RefCell::new(0)) }
+        KEventReceiverControl { enabled: true, handle_window, handle_keyboard, handle_mouse, handle_controller, notification_count : 0 }
     }
 
     /// Get the count of notifications.
     pub fn get_notification_count(&self) -> usize {
-        let a = self.notification_count.clone();
-        a.as_ref().take()
+        self.notification_count
     }
 
     /// Set if the receiver is enabled or not.
@@ -307,12 +357,10 @@ impl KEventReceiverControl {
 }
 
 impl KEventReceiver for KEventReceiverControl {
-    fn receive(&self, event : &KEvent) -> bool {
+    fn receive(&mut self, event : &KEvent) -> bool {
         
         // Increment notifications
-        let a = self.notification_count.clone();
-        let b = a.as_ref();
-        b.replace(b.take() + 1);
+        self.notification_count += 1;
         
         match event {
             KEvent::Unknown => panic!("Error : Unknown event received!"),

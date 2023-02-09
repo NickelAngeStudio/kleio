@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 /// # Re-export for Public API
@@ -111,7 +112,7 @@ impl std::fmt::Debug for KWindowError {
 /// TODO: More doc about OS, dispatch, from and window manager and Examples
 pub struct KWindow {
     /// List of receivers.
-    receivers : Vec<Rc<dyn KEventReceiver>>,
+    receivers : Vec<Rc<RefCell<dyn KEventReceiver>>>,
 
     /// Window manager that manage this [KWindow].
     window_manager : Box<dyn KWindowManager>,
@@ -136,6 +137,10 @@ impl KWindow {
     pub fn new(pos_x:isize, pos_y:isize, width:usize, height:usize) -> Result<KWindow, KWindowError> {
 
         // Make sure width is within boundaries.
+
+        use crate::window::linux::x11::KWindowManagerX11;
+
+        use self::linux::wayland::KWindowManagerWayland;
         if width < KWINDOW_MIN_WIDTH || width > KWINDOW_MAX_WIDTH {
             return Err(KWindowError::WindowSizeError);
         }
@@ -145,21 +150,16 @@ impl KWindow {
             return Err(KWindowError::WindowSizeError);
         }
 
-
-        match linux::wayland::KWindowManagerWayland::new(pos_x, pos_y, width, height) {
-            Ok(wm) => {
-                Ok(KWindow{ receivers : Vec::new(), window_manager : Box::new(wm)})
-            },
-            // Try to create X11 Window Manager
-            Err(_) => match linux::x11::KWindowManagerX11::new(pos_x, pos_y, width, height) {
-                Ok(wm) => {
-                    Ok(KWindow{ receivers : Vec::new(), window_manager: Box::new(wm) })
-                },
-
-                // If failed, no display server is available.
-                Err(_) => Err(KWindowError::NoDisplayServer),
-            },
-        } 
+        // Use Wayland display server if compatible
+        if KWindowManagerWayland::is_compatible() {
+            Ok(KWindow{ receivers : Vec::new(), window_manager : Box::new(KWindowManagerWayland::new(pos_x, pos_y, width, height))})
+        } // Else use X11 display server
+        else if KWindowManagerX11::is_compatible() {
+            Ok(KWindow{ receivers : Vec::new(), window_manager : Box::new(KWindowManagerX11::new(pos_x, pos_y, width, height))})
+        } // Return error of NoDisplayServer
+        else {
+            Err(KWindowError::NoDisplayServer)
+        }
     }
 
     #[cfg(all(not(target_family = "wasm"), target_os = "windows"))]

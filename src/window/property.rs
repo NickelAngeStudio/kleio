@@ -22,7 +22,7 @@ impl KWindow {
     }
 
     /// Returns the [KWindow] title. 
-    pub fn title(&self) -> &str {
+    pub fn get_title(&self) -> &str {
         todo!()
     }
 
@@ -32,7 +32,7 @@ impl KWindow {
     }
 
     /// Returns position (x,y) of the [KWindow].
-    pub fn position(&self) -> (isize, isize) {
+    pub fn get_position(&self) -> (isize, isize) {
         todo!()
     }
 
@@ -47,7 +47,7 @@ impl KWindow {
     }
 
     /// Returns dimension (width, height) of the [KWindow].
-    pub fn size(&self) -> (usize, usize) {
+    pub fn get_size(&self) -> (usize, usize) {
         todo!()
     }
 
@@ -57,62 +57,43 @@ impl KWindow {
     }
 
     /// Returns if the [KWindow] is fullscreen or not.
-    pub fn fullscreen(&self) -> bool {
+    pub fn is_fullscreen(&self) -> bool {
         todo!()
     }
-    /*
-  
-    // Minimized flag
-    minimized : bool,
 
-    // Maximized flag
-    maximized : bool,
+    /// Set the [KWindow] as minimized according to parameters.
+    pub fn set_minimized(&self, minimized : bool) {
+        todo!()
+    }
 
-    // Shown flag
-    shown : bool,
+    /// Returns if the [KWindow] is minimized or not.
+    pub fn is_minimized(&self) -> bool {
+        todo!()
+    }
 
-    // Hidden flag
-    hidden : bool,
+    /// Set the [KWindow] as maximized according to parameters.
+    pub fn set_maximized(&self, maximized : bool) {
+        todo!()
+    }
 
-    cursor
-    */
+    /// Returns if the [KWindow] is maximized or not.
+    pub fn is_maximized(&self) -> bool {
+        todo!()
+    }
+
+    /// Restore the [KWindow], undoing any minimized, maximized and/or fullscreen status.
+    pub fn restore(&self) {
+        todo!()
+    }
+
+    /// Show the default operating system cursor.
+    pub fn show_cursor(&self) {
+        todo!()
+    }
+
+    /// Hide the default operating system cursor.
+    pub fn hide_cursor(&self) {
+        todo!()
+    }
 
 }
-
-/*
-pub struct KWindowProperty {
-
-    // Windows handle id
-    handle : usize,
-
-    // Window title
-    title : String,
-
-    // Window position x,y
-    position : (usize, usize),
-
-    // Window size W, H
-    size : (usize, usize),
-
-    // Fullscreen flag
-    fullscreen : bool,
-
-    // Minimized flag
-    minimized : bool,
-
-    // Maximized flag
-    maximized : bool,
-
-    // Shown flag
-    shown : bool,
-
-    // Hidden flag
-    hidden : bool,
-
-    // Borderless flag
-    borderless : bool,
-
-    // Resizable flag
-    resizable : bool
-}
-*/

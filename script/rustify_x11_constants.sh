@@ -38,10 +38,10 @@ write_rust_variable_and_value() {
 
 	if [[ "$1" != *"X_H"* ]]; then	# Make sure we don't add empty define
 		if [[ "$2" == *"(1<<"* ]]; then
-			local value=$(echo "pub const $1:c_long=${2:4:50}" | awk '{ print substr( $0, 1, length($0)-1 ) }')
+			local value=$(echo "pub const $1:c_long=1 << ${2:4:50}" | awk '{ print substr( $0, 1, length($0)-1 ) }')
 			echo "$value;"
 		elif [[ "$2" == *"(1L<<"* ]]; then
-			local value=$(echo "pub const $1:c_long=${2:5:50}" | awk '{ print substr( $0, 1, length($0)-1 ) }')
+			local value=$(echo "pub const $1:c_long=1 << ${2:5:50}" | awk '{ print substr( $0, 1, length($0)-1 ) }')
 			echo "$value;"
 		elif [[ "$2" == *"0L"* ]]; then
 			echo "pub const $1:c_long=0;"

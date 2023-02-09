@@ -33,31 +33,31 @@ pub const NoSymbol:c_long=0;
 /* Input Event Masks. Used as event-mask window attribute and as arguments
 to Grab requests.  Not to be confused with event names.  */
 pub const NoEventMask:c_long=0;
-pub const KeyPressMask:c_long=0;
-pub const KeyReleaseMask:c_long=1;
-pub const ButtonPressMask:c_long=2;
-pub const ButtonReleaseMask:c_long=3;
-pub const EnterWindowMask:c_long=4;
-pub const LeaveWindowMask:c_long=5;
-pub const PointerMotionMask:c_long=6;
-pub const PointerMotionHintMask:c_long=7;
-pub const Button1MotionMask:c_long=8;
-pub const Button2MotionMask:c_long=9;
-pub const Button3MotionMask:c_long=10;
-pub const Button4MotionMask:c_long=11;
-pub const Button5MotionMask:c_long=12;
-pub const ButtonMotionMask:c_long=13;
-pub const KeymapStateMask:c_long=14;
-pub const ExposureMask:c_long=15;
-pub const VisibilityChangeMask:c_long=16;
-pub const StructureNotifyMask:c_long=17;
-pub const ResizeRedirectMask:c_long=18;
-pub const SubstructureNotifyMask:c_long=19;
-pub const SubstructureRedirectMask:c_long=20;
-pub const FocusChangeMask:c_long=21;
-pub const PropertyChangeMask:c_long=22;
-pub const ColormapChangeMask:c_long=23;
-pub const OwnerGrabButtonMask:c_long=24;
+pub const KeyPressMask:c_long=1 << 0;
+pub const KeyReleaseMask:c_long=1 << 1;
+pub const ButtonPressMask:c_long=1 << 2;
+pub const ButtonReleaseMask:c_long=1 << 3;
+pub const EnterWindowMask:c_long=1 << 4;
+pub const LeaveWindowMask:c_long=1 << 5;
+pub const PointerMotionMask:c_long=1 << 6;
+pub const PointerMotionHintMask:c_long=1 << 7;
+pub const Button1MotionMask:c_long=1 << 8;
+pub const Button2MotionMask:c_long=1 << 9;
+pub const Button3MotionMask:c_long=1 << 10;
+pub const Button4MotionMask:c_long=1 << 11;
+pub const Button5MotionMask:c_long=1 << 12;
+pub const ButtonMotionMask:c_long=1 << 13;
+pub const KeymapStateMask:c_long=1 << 14;
+pub const ExposureMask:c_long=1 << 15;
+pub const VisibilityChangeMask:c_long=1 << 16;
+pub const StructureNotifyMask:c_long=1 << 17;
+pub const ResizeRedirectMask:c_long=1 << 18;
+pub const SubstructureNotifyMask:c_long=1 << 19;
+pub const SubstructureRedirectMask:c_long=1 << 20;
+pub const FocusChangeMask:c_long=1 << 21;
+pub const PropertyChangeMask:c_long=1 << 22;
+pub const ColormapChangeMask:c_long=1 << 23;
+pub const OwnerGrabButtonMask:c_long=1 << 24;
 /* Event names.  Used in "type" field in XEvent structures.  Not to be
 are reserved in the protocol for errors and replies. */
 pub const KeyPress:c_int=2;
@@ -97,14 +97,14 @@ pub const GenericEvent:c_int=35;
 pub const LASTEvent:c_int=36;
 /* Key masks. Used as modifiers to GrabButton and GrabKey, results of QueryPointer,
 state in various key-, mouse-, and button-related events. */
-pub const ShiftMask:c_long=0;
-pub const LockMask:c_long=1;
-pub const ControlMask:c_long=2;
-pub const Mod1Mask:c_long=3;
-pub const Mod2Mask:c_long=4;
-pub const Mod3Mask:c_long=5;
-pub const Mod4Mask:c_long=6;
-pub const Mod5Mask:c_long=7;
+pub const ShiftMask:c_long=1 << 0;
+pub const LockMask:c_long=1 << 1;
+pub const ControlMask:c_long=1 << 2;
+pub const Mod1Mask:c_long=1 << 3;
+pub const Mod2Mask:c_long=1 << 4;
+pub const Mod3Mask:c_long=1 << 5;
+pub const Mod4Mask:c_long=1 << 6;
+pub const Mod5Mask:c_long=1 << 7;
 /* modifier names.  Used to build a SetModifierMapping request or
 masks defined above. */
 pub const ShiftMapIndex:c_int=0;
@@ -117,12 +117,12 @@ pub const Mod4MapIndex:c_int=6;
 pub const Mod5MapIndex:c_int=7;
 /* button masks.  Used in same manner as Key masks above. Not to be confused
 with button names below. */
-pub const Button1Mask:c_long=8;
-pub const Button2Mask:c_long=9;
-pub const Button3Mask:c_long=10;
-pub const Button4Mask:c_long=11;
-pub const Button5Mask:c_long=12;
-pub const AnyModifier:c_long=15;
+pub const Button1Mask:c_long=1 << 8;
+pub const Button2Mask:c_long=1 << 9;
+pub const Button3Mask:c_long=1 << 10;
+pub const Button4Mask:c_long=1 << 11;
+pub const Button5Mask:c_long=1 << 12;
+pub const AnyModifier:c_long=1 << 15;
 /* button names. Used as arguments to GrabButton and as detail in ButtonPress
 Note that 0 is already defined above as "AnyButton".  */
 pub const Button1:c_int=1;
@@ -218,29 +218,29 @@ pub const LastExtensionError:c_int=255;
 pub const InputOutput:c_int=1;
 pub const InputOnly:c_int=2;
 /* Window attributes for CreateWindow and ChangeWindowAttributes */
-pub const CWBackPixmap:c_long=0;
-pub const CWBackPixel:c_long=1;
-pub const CWBorderPixmap:c_long=2;
-pub const CWBorderPixel:c_long=3;
-pub const CWBitGravity:c_long=4;
-pub const CWWinGravity:c_long=5;
-pub const CWBackingStore:c_long=6;
-pub const CWBackingPlanes:c_long=7;
-pub const CWBackingPixel:c_long=8;
-pub const CWOverrideRedirect:c_long=9;
-pub const CWSaveUnder:c_long=10;
-pub const CWEventMask:c_long=11;
-pub const CWDontPropagate:c_long=12;
-pub const CWColormap:c_long=13;
-pub const CWCursor:c_long=14;
+pub const CWBackPixmap:c_long=1 << 0;
+pub const CWBackPixel:c_long=1 << 1;
+pub const CWBorderPixmap:c_long=1 << 2;
+pub const CWBorderPixel:c_long=1 << 3;
+pub const CWBitGravity:c_long=1 << 4;
+pub const CWWinGravity:c_long=1 << 5;
+pub const CWBackingStore:c_long=1 << 6;
+pub const CWBackingPlanes:c_long=1 << 7;
+pub const CWBackingPixel:c_long=1 << 8;
+pub const CWOverrideRedirect:c_long=1 << 9;
+pub const CWSaveUnder:c_long=1 << 10;
+pub const CWEventMask:c_long=1 << 11;
+pub const CWDontPropagate:c_long=1 << 12;
+pub const CWColormap:c_long=1 << 13;
+pub const CWCursor:c_long=1 << 14;
 /* ConfigureWindow structure */
-pub const CWX:c_long=0;
-pub const CWY:c_long=1;
-pub const CWWidth:c_long=2;
-pub const CWHeight:c_long=3;
-pub const CWBorderWidth:c_long=4;
-pub const CWSibling:c_long=5;
-pub const CWStackMode:c_long=6;
+pub const CWX:c_long=1 << 0;
+pub const CWY:c_long=1 << 1;
+pub const CWWidth:c_long=1 << 2;
+pub const CWHeight:c_long=1 << 3;
+pub const CWBorderWidth:c_long=1 << 4;
+pub const CWSibling:c_long=1 << 5;
+pub const CWStackMode:c_long=1 << 6;
 /* Bit Gravity */
 pub const ForgetGravity:c_int=0;
 pub const NorthWestGravity:c_int=1;
@@ -344,29 +344,29 @@ pub const ArcChord:c_int=0;
 pub const ArcPieSlice:c_int=1;
 /* GC components: masks used in CreateGC, CopyGC, ChangeGC, OR'ed into
 GC.stateChanges */
-pub const GCFunction:c_long=0;
-pub const GCPlaneMask:c_long=1;
-pub const GCForeground:c_long=2;
-pub const GCBackground:c_long=3;
-pub const GCLineWidth:c_long=4;
-pub const GCLineStyle:c_long=5;
-pub const GCCapStyle:c_long=6;
-pub const GCJoinStyle:c_long=7;
-pub const GCFillStyle:c_long=8;
-pub const GCFillRule:c_long=9;
-pub const GCTile:c_long=10;
-pub const GCStipple:c_long=11;
-pub const GCTileStipXOrigin:c_long=12;
-pub const GCTileStipYOrigin:c_long=13;
-pub const GCFont:c_long=14;
-pub const GCSubwindowMode:c_long=15;
-pub const GCGraphicsExposures:c_long=16;
-pub const GCClipXOrigin:c_long=17;
-pub const GCClipYOrigin:c_long=18;
-pub const GCClipMask:c_long=19;
-pub const GCDashOffset:c_long=20;
-pub const GCDashList:c_long=21;
-pub const GCArcMode:c_long=22;
+pub const GCFunction:c_long=1 << 0;
+pub const GCPlaneMask:c_long=1 << 1;
+pub const GCForeground:c_long=1 << 2;
+pub const GCBackground:c_long=1 << 3;
+pub const GCLineWidth:c_long=1 << 4;
+pub const GCLineStyle:c_long=1 << 5;
+pub const GCCapStyle:c_long=1 << 6;
+pub const GCJoinStyle:c_long=1 << 7;
+pub const GCFillStyle:c_long=1 << 8;
+pub const GCFillRule:c_long=1 << 9;
+pub const GCTile:c_long=1 << 10;
+pub const GCStipple:c_long=1 << 11;
+pub const GCTileStipXOrigin:c_long=1 << 12;
+pub const GCTileStipYOrigin:c_long=1 << 13;
+pub const GCFont:c_long=1 << 14;
+pub const GCSubwindowMode:c_long=1 << 15;
+pub const GCGraphicsExposures:c_long=1 << 16;
+pub const GCClipXOrigin:c_long=1 << 17;
+pub const GCClipYOrigin:c_long=1 << 18;
+pub const GCClipMask:c_long=1 << 19;
+pub const GCDashOffset:c_long=1 << 20;
+pub const GCDashList:c_long=1 << 21;
+pub const GCArcMode:c_long=1 << 22;
 pub const GCLastBit:c_int=22;
 /*****************************************************************
 * FONTS
@@ -389,9 +389,9 @@ pub const ZPixmap:c_int=2;
 pub const AllocNone:c_int=0;
 pub const AllocAll:c_int=1;
 /* Flags used in StoreNamedColor, StoreColors */
-pub const DoRed:c_long=0;
-pub const DoGreen:c_long=1;
-pub const DoBlue:c_long=2;
+pub const DoRed:c_long=1 << 0;
+pub const DoGreen:c_long=1 << 1;
+pub const DoBlue:c_long=1 << 2;
 /*****************************************************************
 * CURSOR STUFF
 *****************************************************************/
@@ -408,14 +408,14 @@ pub const AutoRepeatModeDefault:c_int=2;
 pub const LedModeOff:c_int=0;
 pub const LedModeOn:c_int=1;
 /* masks for ChangeKeyboardControl */
-pub const KBKeyClickPercent:c_long=0;
-pub const KBBellPercent:c_long=1;
-pub const KBBellPitch:c_long=2;
-pub const KBBellDuration:c_long=3;
-pub const KBLed:c_long=4;
-pub const KBLedMode:c_long=5;
-pub const KBKey:c_long=6;
-pub const KBAutoRepeatMode:c_long=7;
+pub const KBKeyClickPercent:c_long=1 << 0;
+pub const KBBellPercent:c_long=1 << 1;
+pub const KBBellPitch:c_long=1 << 2;
+pub const KBBellDuration:c_long=1 << 3;
+pub const KBLed:c_long=1 << 4;
+pub const KBLedMode:c_long=1 << 5;
+pub const KBKey:c_long=1 << 6;
+pub const KBAutoRepeatMode:c_long=1 << 7;
 pub const MappingSuccess:c_int=0;
 pub const MappingBusy:c_int=1;
 pub const MappingFailed:c_int=2;

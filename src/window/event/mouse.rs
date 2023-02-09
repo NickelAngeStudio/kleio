@@ -14,3 +14,14 @@ pub enum KEventMouse {
     Wheel(i32, i32),
 
 }
+
+impl std::fmt::Debug for KEventMouse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Moved(arg0, arg1) => f.debug_tuple("Moved").field(arg0).field(arg1).finish(),
+            Self::ButtonDown(arg0, arg1) => f.debug_tuple("ButtonDown").field(arg0).field(arg1).finish(),
+            Self::ButtonUp(arg0, arg1) => f.debug_tuple("ButtonUp").field(arg0).field(arg1).finish(),
+            Self::Wheel(arg0, arg1) => f.debug_tuple("Wheel").field(arg0).field(arg1).finish(),
+        }
+    }
+}

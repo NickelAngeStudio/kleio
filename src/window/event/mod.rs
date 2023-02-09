@@ -34,3 +34,15 @@ pub enum KEvent {
     /// Controller events
     Controller(KEventController),
 }
+
+impl std::fmt::Debug for KEvent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unknown => write!(f, "Unknown"),
+            Self::Window(arg0) => f.debug_tuple("Window").field(arg0).finish(),
+            Self::Keyboard(arg0) => f.debug_tuple("Keyboard").field(arg0).finish(),
+            Self::Mouse(arg0) => f.debug_tuple("Mouse").field(arg0).finish(),
+            Self::Controller(arg0) => f.debug_tuple("Controller").field(arg0).finish(),
+        }
+    }
+}
